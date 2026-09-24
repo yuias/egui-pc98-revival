@@ -14,6 +14,6 @@ pub use style::{apply, apply_with, dot, dots, ensure, palette, snap_rect};
 pub use widgets::{
     Column, ColumnWidth, Dialog, DialogResponse, DotIcon, FKey, ListResponse, ListRow, ListState,
     ListView, SegmentBar, TabStyle, TitledPanel, fkey_bar, header_bar, icon_button, paint_dither,
-    paint_dot_icon, paint_frame, paint_scrim, panel, tab_strip, text_checkbox, text_radio,
-    toggle_box, toggle_box_colored,
+    paint_dot_icon, paint_frame, paint_scrim, panel, seek_bar, tab_strip, text_checkbox,
+    text_radio, toggle_box, toggle_box_colored,
 };

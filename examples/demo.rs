@@ -93,6 +93,8 @@ struct DemoApp {
     solo: bool,
     loop_enabled: bool,
     playback_source: u8,
+    position: f32,
+    playing: bool,
 }
 
 impl Default for DemoApp {
@@ -118,6 +120,8 @@ impl Default for DemoApp {
             solo: false,
             loop_enabled: false,
             playback_source: 0,
+            position: 0.0,
+            playing: false,
         }
     }
 }
@@ -125,6 +129,16 @@ impl Default for DemoApp {
 impl eframe::App for DemoApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         egui_pc98_revival::ensure(ui.ctx());
+
+        if self.playing {
+            const LENGTH_SECS: f32 = 180.0;
+            let dt = ui.input(|i| i.stable_dt);
+            self.position = (self.position + dt / LENGTH_SECS).min(1.0);
+            if self.position >= 1.0 {
+                self.playing = false;
+            }
+            ui.ctx().request_repaint();
+        }
 
         let clock = format!("{:.1}s", self.started.elapsed().as_secs_f32());
         ui.ctx()
@@ -301,6 +315,11 @@ impl eframe::App for DemoApp {
                                     for icon in DOT_ICONS {
                                         if egui_pc98_revival::icon_button(ui, icon).clicked() {
                                             self.status = format!("{icon:?} clicked");
+                                            match icon {
+                                                DotIcon::Play => self.playing = true,
+                                                DotIcon::Pause => self.playing = false,
+                                                _ => {}
+                                            }
                                         }
                                     }
                                 });
@@ -347,6 +366,21 @@ impl eframe::App for DemoApp {
                                         );
                                     }
                                 });
+
+                                // Fake 3:00 track length.
+                                const LENGTH_SECS: f32 = 180.0;
+                                let elapsed = self.position * LENGTH_SECS;
+                                ui.label(format!(
+                                    "Seek ({}playing): {:02}:{:02}",
+                                    if self.playing { "" } else { "not " },
+                                    (elapsed / 60.0) as u32,
+                                    (elapsed % 60.0) as u32
+                                ));
+                                egui_pc98_revival::seek_bar(
+                                    ui,
+                                    &mut self.position,
+                                    &[0.25, 0.5, 0.75],
+                                );
                             }
                         });
                     if info_response.response.clicked() {

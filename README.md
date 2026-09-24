@@ -188,6 +188,15 @@ egui_pc98_revival::text_checkbox(ui, &mut self.loop_enabled, "Loop");
 egui_pc98_revival::text_radio(ui, &mut self.playback_source, 0u8, "A:");
 ```
 
+### Seek bar
+
+`seek_bar` draws a dithered track with a filled position, a 2-dot handle, and
+tick marks; click or drag anywhere in it to set a `f32` in `0..=1`:
+
+```rust
+egui_pc98_revival::seek_bar(ui, &mut self.position, &[0.25, 0.5, 0.75]);
+```
+
 ### Dialog
 
 `Dialog` shows a `TitledPanel` centered over a dithered scrim; the background
