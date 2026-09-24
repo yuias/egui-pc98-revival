@@ -12,5 +12,6 @@ pub use layout::fit_by_priority;
 pub use palette::Palette;
 pub use style::{apply, apply_with, dot, dots, ensure, palette, snap_rect};
 pub use widgets::{
-    FKey, TitledPanel, fkey_bar, header_bar, paint_dither, paint_frame, paint_scrim, panel,
+    FKey, TabStyle, TitledPanel, fkey_bar, header_bar, paint_dither, paint_frame, paint_scrim,
+    panel, tab_strip,
 };

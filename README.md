@@ -85,6 +85,21 @@ let cell_w = text::cell_width(ui);
 `truncate_tail` truncates to whole cells and appends an ASCII `"..."`
 (never `…`) when it cuts text short.
 
+### Tab strip
+
+`tab_strip` draws a row of tabs and updates `selected` when one is clicked;
+`TabStyle::TitleStrip` is meant for a `TitledPanel` title-strip slot,
+`TabStyle::Bar` for a standalone strip on `ground`:
+
+```rust
+egui_pc98_revival::tab_strip(
+    ui,
+    &mut self.tab,
+    &["GENERAL", "SOUND"],
+    egui_pc98_revival::TabStyle::Bar,
+);
+```
+
 ## Feature flags
 
 - `bundled-font` (on by default): bundles a baseline-aligned copy of the

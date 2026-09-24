@@ -4,7 +4,7 @@
 //!
 //! Set `PC98_DEMO_ZOOM` (e.g. `1.5`) to preview other display scale factors.
 
-use egui_pc98_revival::FKey;
+use egui_pc98_revival::{FKey, TabStyle};
 
 const FKEY_ITEMS: [FKey<'static>; 10] = [
     FKey {
@@ -91,6 +91,8 @@ struct DemoApp {
     drive: u8,
     count: i32,
     focused_panel: usize,
+    drive_tab: usize,
+    info_tab: usize,
 }
 
 impl Default for DemoApp {
@@ -107,6 +109,8 @@ impl Default for DemoApp {
             drive: 0,
             count: 3,
             focused_panel: 0,
+            drive_tab: 0,
+            info_tab: 0,
         }
     }
 }
@@ -173,7 +177,12 @@ impl eframe::App for DemoApp {
                         .show_with_title(
                             &mut columns[0],
                             |ui| {
-                                ui.label(format!("{} FILES", FILES.len()));
+                                egui_pc98_revival::tab_strip(
+                                    ui,
+                                    &mut self.drive_tab,
+                                    &["A:", "B:", "C:"],
+                                    TabStyle::TitleStrip,
+                                );
                             },
                             |ui| {
                                 egui::ScrollArea::vertical()
@@ -198,24 +207,36 @@ impl eframe::App for DemoApp {
                     let info_response = egui_pc98_revival::TitledPanel::new("INFO")
                         .focused(self.focused_panel == 1)
                         .show(&mut columns[1], |ui| {
-                            // The font maps the JIS full-width minus to U+2212, not U+FF0D.
-                            ui.label("「ＰＣ−９８０１ シリーズ」");
-                            ui.label("日本電気株式会社製 パーソナルコンピュータ");
-                            ui.label(egui_pc98_revival::text::truncate_tail(
-                                "日本電気株式会社製 パーソナルコンピュータ",
-                                20,
-                            ));
-                            if ui
-                                .button("Run")
-                                .on_hover_text("Run the selected file")
-                                .clicked()
-                            {
-                                self.status = format!("Running {}", FILES[self.selected_file]);
+                            egui_pc98_revival::tab_strip(
+                                ui,
+                                &mut self.info_tab,
+                                &["GENERAL", "SOUND"],
+                                TabStyle::Bar,
+                            );
+                            if self.info_tab == 0 {
+                                // The font maps the JIS full-width minus to U+2212, not U+FF0D.
+                                ui.label("「ＰＣ−９８０１ シリーズ」");
+                                ui.label("日本電気株式会社製 パーソナルコンピュータ");
+                                ui.label(egui_pc98_revival::text::truncate_tail(
+                                    "日本電気株式会社製 パーソナルコンピュータ",
+                                    20,
+                                ));
+                                if ui
+                                    .button("Run")
+                                    .on_hover_text("Run the selected file")
+                                    .clicked()
+                                {
+                                    self.status = format!("Running {}", FILES[self.selected_file]);
+                                }
+                                ui.checkbox(&mut self.checked, "Enable turbo mode");
+                                ui.add(
+                                    egui::Slider::new(&mut self.slider, 0.0..=100.0).text("volume"),
+                                );
+                                ui.text_edit_singleline(&mut self.text);
+                                ui.label(&self.status);
+                            } else {
+                                ui.label("No sound devices.");
                             }
-                            ui.checkbox(&mut self.checked, "Enable turbo mode");
-                            ui.add(egui::Slider::new(&mut self.slider, 0.0..=100.0).text("volume"));
-                            ui.text_edit_singleline(&mut self.text);
-                            ui.label(&self.status);
                         });
                     if info_response.response.clicked() {
                         self.focused_panel = 1;
