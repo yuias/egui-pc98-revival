@@ -121,8 +121,14 @@ fn state_id() -> Id {
     Id::new("egui_pc98_revival::state")
 }
 
-/// Installs the default palette.
+/// Installs the bundled font (feature `bundled-font`) and the default palette.
+///
+/// Without the `bundled-font` feature, call
+/// [`crate::fonts::font_definitions_with`] and `ctx.set_fonts(..)` yourself
+/// before or after this call to install a substitute dot font.
 pub fn apply(ctx: &egui::Context) {
+    #[cfg(feature = "bundled-font")]
+    crate::fonts::install(ctx);
     apply_with(ctx, &Palette::default());
 }
 
