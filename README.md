@@ -37,8 +37,9 @@ if let Some(clicked) = egui_pc98_revival::fkey_bar(ui, &items) {
 
 ## Feature flags
 
-- `bundled-font` (on by default): bundles and installs the "KH Dot
-  Kodenmachou 16" font as the default monospace and proportional font.
+- `bundled-font` (on by default): bundles a baseline-aligned copy of the
+  "KH Dot Kodenmachou 16" font (see [License](#license)) and installs it as
+  the default monospace and proportional font.
 
 Without this feature, install a font yourself with
 `fonts::font_definitions_with`, or set the fonts through `egui::Context` as
@@ -76,3 +77,14 @@ Hiraki and converted to TrueType by Jikasei Font Koubou
 (<http://jikasei.me/font/kh-dotfont/>). It is licensed under the SIL Open
 Font License 1.1; the full text is in
 [`assets/fonts/SIL_Open_Font_License_1.1.txt`](assets/fonts/SIL_Open_Font_License_1.1.txt).
+
+The crate embeds a modified copy,
+`assets/fonts/KH-Dot-Kodenmachou-16-Ki-aligned.ttf`, which is also under the
+SIL Open Font License 1.1. The original places its dot grid a quarter dot
+below the baseline, so egui splits every horizontal stroke across two pixel
+rows. The copy moves all outlines and vertical metrics up by that quarter dot
+and is otherwise unchanged. Regenerate it with:
+
+```sh
+uv run scripts/align_font.py assets/fonts/KH-Dot-Kodenmachou-16-Ki.ttf     assets/fonts/KH-Dot-Kodenmachou-16-Ki-aligned.ttf
+```

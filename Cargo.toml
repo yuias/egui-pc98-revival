@@ -9,7 +9,7 @@ keywords = ["egui", "theme", "pc-98", "retro", "gui"]
 categories = ["gui"]
 include = [
   "Cargo.toml", "README.md", "LICENSE", "src/**", "examples/**",
-  "assets/fonts/KH-Dot-Kodenmachou-16-Ki.ttf",
+  "assets/fonts/KH-Dot-Kodenmachou-16-Ki-aligned.ttf",
   "assets/fonts/README_KHDotFont.txt",
   "assets/fonts/SIL_Open_Font_License_1.1.txt",
 ]

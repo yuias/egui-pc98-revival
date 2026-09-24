@@ -11,7 +11,7 @@ pub const FONT_NAME: &str = "KH-Dot-Kodenmachou-16";
 #[cfg(feature = "bundled-font")]
 pub const KH_DOT_16_TTF: &[u8] = include_bytes!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/assets/fonts/KH-Dot-Kodenmachou-16-Ki.ttf"
+    "/assets/fonts/KH-Dot-Kodenmachou-16-Ki-aligned.ttf"
 ));
 
 /// Wraps raw TTF bytes with tweaks suited to dot fonts.
