@@ -35,6 +35,16 @@ jobs:
       - run: cargo clippy --all-targets ${{ matrix.features }}
       - run: cargo test ${{ matrix.features }}
 
+  docs:
+    runs-on: ubuntu-latest
+    env:
+      RUSTDOCFLAGS: -D warnings
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo doc --no-deps --all-features
+
   # The library itself only depends on egui, so it should build for the web.
   wasm:
     runs-on: ubuntu-latest
