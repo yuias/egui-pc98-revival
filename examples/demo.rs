@@ -5,8 +5,8 @@
 //! Set `PC98_DEMO_ZOOM` (e.g. `1.5`) to preview other display scale factors.
 
 use egui_pc98_revival::{
-    Column, ColumnWidth, Dialog, DotIcon, FKey, ListState, ListView, MessageBoxResult, TabStyle,
-    message_box,
+    Column, ColumnWidth, Dialog, DotIcon, FKey, HeaderBar, ListState, ListView, MessageBoxResult,
+    TabStyle, message_box,
 };
 
 const DOT_ICONS: [DotIcon; 8] = [
@@ -181,7 +181,14 @@ impl eframe::App for DemoApp {
         egui::Panel::top("header")
             .frame(egui::Frame::NONE)
             .show(ui, |ui| {
-                egui_pc98_revival::header_bar(ui, "egui PC-98 Revival", Some(&clock));
+                let palette = egui_pc98_revival::palette(ui.ctx());
+                HeaderBar::new()
+                    .badge("98")
+                    .left("egui PC-98 Revival")
+                    .item("A:", None, Some(2))
+                    .item("640KB", Some(palette.ok), Some(1))
+                    .item(&clock, None, None)
+                    .show(ui);
             });
 
         egui::Panel::bottom("fkeys")

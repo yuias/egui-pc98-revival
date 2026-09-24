@@ -41,6 +41,25 @@ if let Some(clicked) = egui_pc98_revival::fkey_bar(ui, &items) {
 
 `apply` forces the dark theme, since the PC-98 look has no light variant.
 
+### Header bar
+
+`HeaderBar` builds a full-width title/status bar: an optional accent badge,
+left text, and right-aligned items separated by 1-dot rules that drop by
+priority when the bar gets narrow:
+
+```rust
+egui_pc98_revival::HeaderBar::new()
+    .badge("98")
+    .left("egui PC-98 Revival")
+    .item("A:", None, Some(2))          // dropped first when narrow
+    .item("640KB", Some(palette.ok), Some(1))
+    .item(&clock, None, None)           // never dropped
+    .show(ui);
+```
+
+`header_bar(ui, left, right)` remains as a shorthand for a plain left text
+plus one right-aligned item, with no badge and no separators.
+
 ### Custom widgets
 
 Build your own widgets on the same dot grid and palette as the bundled ones:
