@@ -2,7 +2,7 @@
 //! that keeps a PC-98 style installed as the display scale changes.
 
 use egui::style::HandleShape;
-use egui::{Color32, CornerRadius, FontFamily, FontId, Id, Shadow, Stroke, ThemePreference};
+use egui::{CornerRadius, FontFamily, FontId, Id, Shadow, Stroke, ThemePreference};
 
 use crate::Palette;
 
@@ -51,8 +51,8 @@ pub fn pc98_style(palette: &Palette, ppp: f32) -> egui::Style {
     v.code_bg_color = palette.well;
     v.faint_bg_color = palette.well;
     v.hyperlink_color = palette.frame;
-    v.warn_fg_color = palette.accent;
-    v.error_fg_color = palette.red;
+    v.warn_fg_color = palette.warn;
+    v.error_fg_color = palette.danger;
     v.selection.bg_fill = palette.selected_bg;
     v.selection.stroke = Stroke::new(d, palette.bar_fg);
     v.handle_shape = HandleShape::Rect { aspect_ratio: 0.5 };
@@ -89,12 +89,12 @@ pub fn pc98_style(palette: &Palette, ppp: f32) -> egui::Style {
     w.hovered.bg_fill = palette.accent;
     w.hovered.weak_bg_fill = palette.accent;
     w.hovered.bg_stroke = Stroke::new(d, palette.accent);
-    w.hovered.fg_stroke = Stroke::new(d, Color32::BLACK);
+    w.hovered.fg_stroke = Stroke::new(d, palette.hover_fg);
 
     w.active.bg_fill = palette.frame;
     w.active.weak_bg_fill = palette.frame;
     w.active.bg_stroke = Stroke::new(d, palette.frame);
-    w.active.fg_stroke = Stroke::new(d, Color32::BLACK);
+    w.active.fg_stroke = Stroke::new(d, palette.hover_fg);
 
     // `open.weak_bg_fill` also fills the focused window's title bar, whose
     // text egui draws in the plain text color, so this pair must contrast
@@ -234,6 +234,19 @@ mod tests {
         assert_eq!(
             style.visuals.widgets.hovered.weak_bg_fill,
             Palette::PC98.accent
+        );
+    }
+
+    #[test]
+    fn pc98_style_hovered_text_uses_hover_fg() {
+        let style = pc98_style(&Palette::PC98, 1.5);
+        assert_eq!(
+            style.visuals.widgets.hovered.fg_stroke.color,
+            Palette::PC98.hover_fg
+        );
+        assert_eq!(
+            style.visuals.widgets.active.fg_stroke.color,
+            Palette::PC98.hover_fg
         );
     }
 

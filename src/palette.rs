@@ -20,6 +20,10 @@ pub const GREEN: Color32 = Color32::from_rgb(0x22, 0xCC, 0x44);
 pub const OK: Color32 = GREEN;
 pub const FKEY_BG: Color32 = Color32::from_rgb(0xEE, 0xEE, 0xEE);
 pub const FKEY_FG: Color32 = Color32::from_rgb(0x00, 0x00, 0x00);
+pub const WARN: Color32 = ACCENT;
+pub const DANGER: Color32 = RED;
+pub const SELECTED_FG: Color32 = BAR_FG;
+pub const HOVER_FG: Color32 = Color32::from_rgb(0x00, 0x00, 0x00);
 /// Red, cyan, green, yellow, magenta, blue, white, gray.
 pub const HUES: [Color32; 8] = [
     Color32::from_rgb(0xEE, 0x22, 0x33),
@@ -50,6 +54,16 @@ pub struct Palette {
     pub green: Color32,
     pub fkey_bg: Color32,
     pub fkey_fg: Color32,
+    /// Positive state (e.g. "done", "on air").
+    pub ok: Color32,
+    /// Caution: meter top segments, warnings.
+    pub warn: Color32,
+    /// Errors, mute, playhead.
+    pub danger: Color32,
+    /// Text on `selected_bg`.
+    pub selected_fg: Color32,
+    /// Text on a hovered (accent-filled) item.
+    pub hover_fg: Color32,
     pub hues: [Color32; 8],
 }
 
@@ -71,8 +85,18 @@ impl Palette {
         green: GREEN,
         fkey_bg: FKEY_BG,
         fkey_fg: FKEY_FG,
+        ok: OK,
+        warn: WARN,
+        danger: DANGER,
+        selected_fg: SELECTED_FG,
+        hover_fg: HOVER_FG,
         hues: HUES,
     };
+
+    /// Hue `i` of the 8-color set, wrapping around.
+    pub fn hue(&self, i: usize) -> Color32 {
+        self.hues[i % self.hues.len()]
+    }
 }
 
 impl Default for Palette {
@@ -98,5 +122,21 @@ mod tests {
     #[test]
     fn first_hue_is_red() {
         assert_eq!(HUES[0], RED);
+    }
+
+    #[test]
+    fn pc98_semantic_roles_match_consts() {
+        let p = Palette::PC98;
+        assert_eq!(p.ok, OK);
+        assert_eq!(p.warn, WARN);
+        assert_eq!(p.danger, DANGER);
+        assert_eq!(p.selected_fg, SELECTED_FG);
+        assert_eq!(p.hover_fg, HOVER_FG);
+    }
+
+    #[test]
+    fn hue_wraps() {
+        let p = Palette::PC98;
+        assert_eq!(p.hue(8), p.hues[0]);
     }
 }
