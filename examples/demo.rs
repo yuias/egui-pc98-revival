@@ -394,6 +394,25 @@ impl eframe::App for DemoApp {
                                     &mut self.position,
                                     &[0.25, 0.5, 0.75],
                                 );
+
+                                ui.label("Hue fills (0..15):");
+                                ui.horizontal(|ui| {
+                                    let side = egui_pc98_revival::dots(ui.ctx(), 16.0);
+                                    let gap = egui_pc98_revival::dots(ui.ctx(), 1.0);
+                                    for index in 0..16 {
+                                        let (rect, _) = ui.allocate_exact_size(
+                                            egui::vec2(side, side),
+                                            egui::Sense::hover(),
+                                        );
+                                        egui_pc98_revival::paint_hue_fill(
+                                            ui.painter(),
+                                            rect,
+                                            index,
+                                            None,
+                                        );
+                                        ui.add_space(gap);
+                                    }
+                                });
                             }
                         });
                     if info_response.response.clicked() {

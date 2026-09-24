@@ -216,6 +216,15 @@ tick marks; click or drag anywhere in it to set a `f32` in `0..=1`:
 egui_pc98_revival::seek_bar(ui, &mut self.position, &[0.25, 0.5, 0.75]);
 ```
 
+### Hue fill
+
+`paint_hue_fill` fills a rect with one of 16 distinguishable fills: index 0-7
+is a palette hue drawn solid, 8-15 is the same hue dithered over the background:
+
+```rust
+egui_pc98_revival::paint_hue_fill(ui.painter(), rect, index, None);
+```
+
 ### Dialog
 
 `Dialog` shows a `TitledPanel` centered over a dithered scrim; the background

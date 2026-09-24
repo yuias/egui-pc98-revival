@@ -3,7 +3,7 @@
 
 use egui::{Color32, ColorImage, Id, Painter, Rect, TextureHandle, TextureOptions};
 
-use crate::style::{dot, palette};
+use crate::style::{dot, palette, snap_rect};
 
 fn dither_texture_id() -> Id {
     Id::new("egui_pc98_revival::dither")
@@ -38,6 +38,21 @@ pub fn paint_dither(painter: &Painter, rect: Rect, fg: Color32, bg: Option<Color
         });
 
     painter.image(handle.id(), rect, dither_uv(rect, dot(ctx)), fg);
+}
+
+/// Fills `rect` with one of 16 distinguishable fills: `index % 16` 0-7 is
+/// `palette.hue(i)` solid, 8-15 is the same hue dithered over `bg` (default `ground`).
+pub fn paint_hue_fill(painter: &Painter, rect: Rect, index: usize, bg: Option<Color32>) {
+    let ctx = painter.ctx();
+    let p = palette(ctx);
+    let i = index % 16;
+    let color = p.hue(i);
+    let rect = snap_rect(ctx, rect);
+    if i < 8 {
+        painter.rect_filled(rect, 0.0, color);
+    } else {
+        paint_dither(painter, rect, color, Some(bg.unwrap_or(p.ground)));
+    }
 }
 
 /// Dims everything under `rect` with a 1-dot checker of the palette's `ground`.
@@ -114,6 +129,22 @@ mod tests {
             let painter = ui.painter();
             let rect = Rect::from_min_size(pos2(0.0, 0.0), vec2(16.0, 16.0));
             paint_scrim(painter, rect);
+        });
+        output.textures_delta.clear();
+    }
+
+    #[test]
+    fn paint_hue_fill_all_indices_smoke() {
+        let ctx = egui::Context::default();
+        apply_with(&ctx, &Palette::default());
+
+        let mut output = ctx.run_ui(RawInput::default(), |ui| {
+            let painter = ui.painter();
+            let rect = Rect::from_min_size(pos2(0.0, 0.0), vec2(16.0, 16.0));
+            for index in 0..32 {
+                paint_hue_fill(painter, rect, index, None);
+                paint_hue_fill(painter, rect, index, Some(Color32::BLACK));
+            }
         });
         output.textures_delta.clear();
     }
