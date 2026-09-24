@@ -176,6 +176,18 @@ egui_pc98_revival::toggle_box(ui, &mut self.mute, "M");
 egui_pc98_revival::toggle_box_colored(ui, &mut self.solo, "S", palette.ok);
 ```
 
+### Text checkbox and radio
+
+`text_checkbox` draws `[*] label` / `[ ] label`, `text_radio` draws
+`(*) label` / `( ) label`; both are drawn with the bitmap font instead of
+egui's own checkbox/radio glyphs. Tab focuses and Space toggles, like egui's
+own checkbox:
+
+```rust
+egui_pc98_revival::text_checkbox(ui, &mut self.loop_enabled, "Loop");
+egui_pc98_revival::text_radio(ui, &mut self.playback_source, 0u8, "A:");
+```
+
 ### Dialog
 
 `Dialog` shows a `TitledPanel` centered over a dithered scrim; the background

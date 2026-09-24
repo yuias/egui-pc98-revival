@@ -91,6 +91,8 @@ struct DemoApp {
     show_help: bool,
     mute: bool,
     solo: bool,
+    loop_enabled: bool,
+    playback_source: u8,
 }
 
 impl Default for DemoApp {
@@ -114,6 +116,8 @@ impl Default for DemoApp {
             show_help: false,
             mute: false,
             solo: false,
+            loop_enabled: false,
+            playback_source: 0,
         }
     }
 }
@@ -327,6 +331,22 @@ impl eframe::App for DemoApp {
                                     );
                                     ui.label(format!("mute: {}, solo: {}", self.mute, self.solo));
                                 });
+
+                                egui_pc98_revival::text_checkbox(
+                                    ui,
+                                    &mut self.loop_enabled,
+                                    "Loop",
+                                );
+                                ui.horizontal(|ui| {
+                                    for (i, label) in ["A:", "B:", "C:"].iter().enumerate() {
+                                        egui_pc98_revival::text_radio(
+                                            ui,
+                                            &mut self.playback_source,
+                                            i as u8,
+                                            label,
+                                        );
+                                    }
+                                });
                             }
                         });
                     if info_response.response.clicked() {
@@ -359,7 +379,12 @@ impl eframe::App for DemoApp {
         let progress = (self.started.elapsed().as_secs_f32() / 10.0).fract();
         egui::Window::new("SETTINGS")
             .open(&mut self.show_window)
-            .default_pos([520.0, 300.0])
+            // Bottom-right, clear of the INFO panel's CONTROLS rows. Pinned by
+            // its bottom-right corner because the first (sizing) frame uses a
+            // large default size, and a far-right left-top position would be
+            // pushed back toward the center to fit the screen.
+            .pivot(egui::Align2::RIGHT_BOTTOM)
+            .default_pos([944.0, 530.0])
             .show(ui.ctx(), |ui| {
                 egui::ComboBox::from_label("Display")
                     .selected_text(MODES[self.mode])
