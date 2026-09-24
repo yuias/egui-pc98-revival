@@ -52,6 +52,15 @@ egui_pc98_revival::paint_frame(ui.painter(), rect, palette.frame);
 `Palette` also carries semantic roles (`ok`, `warn`, `danger`, `selected_fg`,
 `hover_fg`) so status colors stay consistent with the active theme.
 
+`fit_by_priority` decides which items to drop when a row of widths does not
+fit the available space, dropping the highest-priority droppable item first:
+
+```rust
+let widths = [40.0, 30.0, 20.0];
+let drop_priority = [None, Some(1), Some(2)]; // first item is never dropped
+let keep = egui_pc98_revival::fit_by_priority(&widths, &drop_priority, 4.0, 75.0);
+```
+
 ### Text cells
 
 `text::cells` and friends count East Asian Wide, Fullwidth and Ambiguous
