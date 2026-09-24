@@ -2,5 +2,7 @@
 //! app look like a NEC PC-98 text-mode UI.
 
 pub mod palette;
+pub mod style;
 
 pub use palette::Palette;
+pub use style::{apply, apply_with, ensure};

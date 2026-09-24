@@ -1,11 +1,22 @@
 //! Minimal eframe window showing the crate is wired up.
 
-struct DemoApp;
+#[derive(Default)]
+struct DemoApp {
+    clicked_count: u32,
+    checked: bool,
+}
 
 impl eframe::App for DemoApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        egui_pc98_revival::ensure(ui.ctx());
+
         egui::CentralPanel::default().show(ui, |ui| {
             ui.label("egui PC-98 Revival");
+            if ui.button("Click me").clicked() {
+                self.clicked_count += 1;
+            }
+            ui.label(format!("Clicked {} times", self.clicked_count));
+            ui.checkbox(&mut self.checked, "Toggle me");
         });
     }
 }
@@ -21,6 +32,9 @@ fn main() -> eframe::Result {
     eframe::run_native(
         "egui PC-98 Revival",
         native_options,
-        Box::new(|_cc| Ok(Box::new(DemoApp))),
+        Box::new(|cc| {
+            egui_pc98_revival::apply(&cc.egui_ctx);
+            Ok(Box::new(DemoApp::default()))
+        }),
     )
 }
