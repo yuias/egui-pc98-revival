@@ -448,6 +448,11 @@ impl eframe::App for DemoApp {
                                     &mut self.info_double_frame,
                                     "Double frame on INFO",
                                 );
+
+                                ui.horizontal(|ui| {
+                                    egui_pc98_revival::text_spinner(ui);
+                                    ui.label("LOADING...");
+                                });
                             }
                         });
                     if info_response.response.clicked() {

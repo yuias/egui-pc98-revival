@@ -106,6 +106,16 @@ let drop_priority = [None, Some(1), Some(2)]; // first item is never dropped
 let keep = egui_pc98_revival::fit_by_priority(&widths, &drop_priority, 4.0, 75.0);
 ```
 
+### Text spinner
+
+`text_spinner` draws a one-cell `| / - \` spinner from dot rects (not font
+glyphs, since the bundled JIS font draws `\` as `¥`) and requests its own
+repaints while visible:
+
+```rust
+egui_pc98_revival::text_spinner(ui);
+```
+
 ### Text cells
 
 `text::cells` and friends count East Asian Wide, Fullwidth and Ambiguous

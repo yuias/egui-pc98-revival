@@ -13,6 +13,7 @@ mod message_box;
 mod panel;
 mod seek;
 mod segment;
+mod spinner;
 mod tabs;
 mod toggle;
 
@@ -29,5 +30,6 @@ pub use message_box::{MessageBoxResult, message_box};
 pub use panel::{TitledPanel, panel};
 pub use seek::seek_bar;
 pub use segment::SegmentBar;
+pub use spinner::text_spinner;
 pub use tabs::{TabStyle, tab_strip};
 pub use toggle::{toggle_box, toggle_box_colored};
