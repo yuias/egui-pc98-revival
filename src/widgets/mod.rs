@@ -13,7 +13,7 @@ pub use dither::{paint_dither, paint_scrim};
 pub use fkey::{FKey, fkey_bar};
 pub use frame::paint_frame;
 pub use header::header_bar;
-pub use list::{Column, ColumnWidth, ListRow, ListState};
+pub use list::{Column, ColumnWidth, ListResponse, ListRow, ListState, ListView};
 pub use panel::{TitledPanel, panel};
 pub use segment::SegmentBar;
 pub use tabs::{TabStyle, tab_strip};

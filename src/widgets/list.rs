@@ -1,11 +1,18 @@
-//! List column layout and the per-row drawing primitive: fixed/fill columns
-//! with priority-based dropping, and cell drawing truncated to fit.
+//! Keyboard-driven list view: fixed/fill columns with priority-based
+//! dropping, cell drawing truncated to fit, header, selection bar, and
+//! viewport-culled scrolling.
 
-use egui::{Align, Color32, Layout, Painter, Rect, TextStyle, Ui, UiBuilder, pos2};
+use egui::style::ScrollAnimation;
+use egui::{
+    Align, Color32, EventFilter, Id, Key, Layout, Modifiers, Painter, Rect, Response, ScrollArea,
+    Sense, TextStyle, Ui, UiBuilder, pos2, vec2,
+};
 
 use crate::Palette;
 use crate::layout::fit_by_priority;
-use crate::text::truncate_tail;
+use crate::style::palette;
+use crate::text::{cell_width, truncate_tail};
+use crate::widgets::paint_frame;
 
 /// Width policy of a [`Column`].
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -73,9 +80,6 @@ pub(crate) struct ColumnSpan {
 /// between columns, drops columns via `fit_by_priority` (Fill counts as
 /// `min_cells`), then gives leftover whole cells to Fill columns (split
 /// evenly, remainder to the first). `None` = dropped.
-// Not yet called outside tests: `ListView` (a later change) will use it to
-// lay out both the header row and each body row.
-#[cfg_attr(not(test), allow(dead_code))]
 pub(crate) fn column_layout(
     columns: &[Column<'_>],
     cell_w: f32,
@@ -158,9 +162,7 @@ pub struct ListRow<'a> {
 }
 
 impl<'a> ListRow<'a> {
-    // Not yet called outside tests: `ListView` (a later change) constructs
-    // one `ListRow` per visible row from here.
-    #[cfg_attr(not(test), allow(dead_code))]
+    /// Constructs one row; called by `ListView` once per visible row.
     pub(crate) fn new(
         ui: &'a mut Ui,
         rect: Rect,
@@ -240,7 +242,7 @@ impl<'a> ListRow<'a> {
                 .max_rect(col_rect)
                 .layout(Layout::left_to_right(Align::Center)),
         );
-        child.set_clip_rect(col_rect);
+        child.set_clip_rect(col_rect.intersect(self.ui.clip_rect()));
         Some(add(&mut child))
     }
 
@@ -256,8 +258,6 @@ impl<'a> ListRow<'a> {
 }
 
 /// Paints column titles into `rect` (the header row), truncated like cells, in `palette.dim`.
-// Not yet called outside tests: `ListView` (a later change) paints the header row with it.
-#[cfg_attr(not(test), allow(dead_code))]
 pub(crate) fn paint_header(
     painter: &Painter,
     rect: Rect,
@@ -281,9 +281,244 @@ pub(crate) fn paint_header(
     }
 }
 
+/// A single-column fallback used when [`ListView::columns`] was never called:
+/// one unnamed column that fills the width, and no header row.
+const NO_COLUMNS: [Column<'static>; 1] = [Column {
+    title: "",
+    width: ColumnWidth::Fill { min_cells: 0 },
+    align: Align::Min,
+    drop_priority: None,
+}];
+
+/// Keyboard-driven scrolling list: column header, full-width selection bar,
+/// priority column drop.
+pub struct ListView<'a> {
+    id_salt: Id,
+    row_count: usize,
+    columns: &'a [Column<'a>],
+    header: bool,
+}
+
+impl<'a> ListView<'a> {
+    /// New list of `row_count` rows. Header shown by default.
+    // `Id::new` requires `AsId` (`Hash + Debug`) in this egui version.
+    pub fn new(id_salt: impl std::hash::Hash + std::fmt::Debug, row_count: usize) -> Self {
+        Self {
+            id_salt: Id::new(id_salt),
+            row_count,
+            columns: &[],
+            header: true,
+        }
+    }
+
+    /// Sets the column layout. Without this, the view uses a single unnamed
+    /// fill column and shows no header.
+    pub fn columns(mut self, columns: &'a [Column<'a>]) -> Self {
+        self.columns = columns;
+        self
+    }
+
+    /// Shows or hides the header row.
+    pub fn header(mut self, show: bool) -> Self {
+        self.header = show;
+        self
+    }
+
+    /// Fills the available rect of `ui`. Use `response.activated` to detect
+    /// Enter/double-click, not `response.response.clicked()`: Enter and Space
+    /// fake a click on the outer focus target, so `clicked()` fires on every
+    /// keyboard activation and select-only click alike.
+    pub fn show(
+        self,
+        ui: &mut Ui,
+        state: &mut ListState,
+        mut add_row: impl FnMut(&mut ListRow<'_>, usize),
+    ) -> ListResponse {
+        let palette = palette(ui.ctx());
+        let id = ui.make_persistent_id(self.id_salt);
+        let cell_w = cell_width(ui);
+        let row_h = ui.text_style_height(&TextStyle::Body);
+        let row_count = self.row_count;
+
+        let columns: &[Column<'_>] = if self.columns.is_empty() {
+            &NO_COLUMNS
+        } else {
+            self.columns
+        };
+        let show_header = self.header && !self.columns.is_empty();
+
+        let start_cursor = state.cursor;
+        state.cursor = if row_count == 0 {
+            0
+        } else {
+            state.cursor.min(row_count - 1)
+        };
+
+        let outer_rect = ui.available_rect_before_wrap();
+        // Interacted first so row widgets, added later, take hit-test
+        // priority over this catch-all "click on empty space focuses" area.
+        let outer_response = ui.interact(outer_rect, id, Sense::click());
+        if outer_response.clicked() {
+            ui.ctx().memory_mut(|m| m.request_focus(id));
+        }
+        let focused = outer_response.has_focus();
+        if focused {
+            ui.ctx().memory_mut(|m| {
+                m.set_focus_lock_filter(
+                    id,
+                    EventFilter {
+                        vertical_arrows: true,
+                        ..Default::default()
+                    },
+                );
+            });
+        }
+
+        // Scoped so the 0 row spacing doesn't leak into the caller's `ui`;
+        // the ScrollArea content and header allocation below still inherit
+        // it since they're nested inside this scope.
+        let activated = ui
+            .scope(|ui| {
+                ui.spacing_mut().item_spacing.y = 0.0;
+
+                let header_rect = if show_header {
+                    let (rect, _) =
+                        ui.allocate_exact_size(vec2(outer_rect.width(), row_h), Sense::hover());
+                    rect
+                } else {
+                    Rect::NOTHING
+                };
+
+                let mut activated = None;
+                let mut header_spans: Vec<Option<ColumnSpan>> = Vec::new();
+
+                ScrollArea::vertical()
+                    .id_salt(id.with("scroll"))
+                    .auto_shrink([false, false])
+                    .content_margin(0.0)
+                    .show_viewport(ui, |ui, viewport| {
+                        let content_width = ui.max_rect().width();
+                        let top_left = ui.max_rect().min;
+                        let spans = column_layout(columns, cell_w, content_width);
+                        header_spans = spans.clone();
+
+                        ui.set_height(row_count as f32 * row_h);
+
+                        let mut cursor_moved_by_keys = false;
+                        if focused && row_count > 0 {
+                            let visible_rows =
+                                (viewport.height() / row_h).floor().max(1.0) as usize;
+                            let page = visible_rows.saturating_sub(1).max(1);
+                            let prev_cursor = state.cursor;
+                            ui.ctx().input_mut(|input| {
+                                let down =
+                                    input.count_and_consume_key(Modifiers::NONE, Key::ArrowDown);
+                                state.cursor = state.cursor.saturating_add(down).min(row_count - 1);
+
+                                let up = input.count_and_consume_key(Modifiers::NONE, Key::ArrowUp);
+                                state.cursor = state.cursor.saturating_sub(up);
+
+                                let page_down =
+                                    input.count_and_consume_key(Modifiers::NONE, Key::PageDown);
+                                state.cursor = state
+                                    .cursor
+                                    .saturating_add(page_down.saturating_mul(page))
+                                    .min(row_count - 1);
+
+                                let page_up =
+                                    input.count_and_consume_key(Modifiers::NONE, Key::PageUp);
+                                state.cursor =
+                                    state.cursor.saturating_sub(page_up.saturating_mul(page));
+
+                                if input.count_and_consume_key(Modifiers::NONE, Key::Home) > 0 {
+                                    state.cursor = 0;
+                                }
+                                if input.count_and_consume_key(Modifiers::NONE, Key::End) > 0 {
+                                    state.cursor = row_count - 1;
+                                }
+                                if input.count_and_consume_key(Modifiers::NONE, Key::Enter) > 0 {
+                                    activated = Some(state.cursor);
+                                }
+                            });
+                            cursor_moved_by_keys = state.cursor != prev_cursor;
+                        }
+
+                        if cursor_moved_by_keys {
+                            let cursor_rect = Rect::from_min_size(
+                                top_left + vec2(0.0, state.cursor as f32 * row_h),
+                                vec2(content_width, row_h),
+                            );
+                            ui.scroll_to_rect_animation(cursor_rect, None, ScrollAnimation::none());
+                        }
+
+                        let min_row = (viewport.min.y / row_h).floor().max(0.0) as usize;
+                        let max_row =
+                            ((viewport.max.y / row_h).ceil().max(0.0) as usize).min(row_count);
+
+                        for row in min_row..max_row {
+                            let row_rect = Rect::from_min_size(
+                                top_left + vec2(0.0, row as f32 * row_h),
+                                vec2(content_width, row_h),
+                            );
+
+                            let row_response =
+                                ui.interact(row_rect, id.with(("row", row)), Sense::CLICK);
+                            if row_response.clicked() {
+                                state.cursor = row;
+                                ui.ctx().memory_mut(|m| m.request_focus(id));
+                            }
+                            if row_response.double_clicked() {
+                                activated = Some(row);
+                            }
+
+                            let selected = row == state.cursor;
+                            if selected {
+                                if focused {
+                                    ui.painter().rect_filled(row_rect, 0, palette.selected_bg);
+                                } else {
+                                    paint_frame(ui.painter(), row_rect, palette.selected_bg);
+                                }
+                            }
+
+                            let mut list_row =
+                                ListRow::new(ui, row_rect, &spans, selected, focused, cell_w);
+                            add_row(&mut list_row, row);
+                        }
+                    });
+
+                if show_header {
+                    paint_header(ui.painter(), header_rect, columns, &header_spans, &palette);
+                }
+
+                activated
+            })
+            .inner;
+
+        ListResponse {
+            response: outer_response,
+            activated,
+            cursor_changed: state.cursor != start_cursor,
+        }
+    }
+}
+
+/// Result of [`ListView::show`].
+pub struct ListResponse {
+    /// Focus target of the list; `response.has_focus()` tells whether keys go
+    /// to it. Do not use `response.clicked()` to detect activation: Enter and
+    /// Space fake a click on this response when the list has focus, so it
+    /// fires on every keyboard activation, not just a mouse click. Use
+    /// `activated` instead.
+    pub response: Response,
+    /// Row activated this frame by Enter or double-click.
+    pub activated: Option<usize>,
+    /// Whether `state.cursor` differs from its value at the start of `show`.
+    pub cursor_changed: bool,
+}
+
 #[cfg(test)]
 mod tests {
-    use egui::RawInput;
+    use egui::{Event, RawInput};
 
     use crate::Palette;
     use crate::style::apply_with;
@@ -395,5 +630,206 @@ mod tests {
             paint_header(ui.painter(), rect, &columns, &spans, &Palette::default());
         });
         output.textures_delta.clear();
+    }
+
+    /// Draws one `ListView` over `row_count` rows in a fixed-size area,
+    /// followed by a focusable button. The button lets tests check that
+    /// keyboard navigation (e.g. Tab) doesn't steal focus away from the
+    /// list onto a row, since rows must not be individually focusable.
+    fn show_list(
+        ctx: &egui::Context,
+        id_salt: &str,
+        row_count: usize,
+        state: &mut ListState,
+        events: Vec<Event>,
+    ) -> ListResponse {
+        let mut response = None;
+        let mut output = ctx.run_ui(
+            RawInput {
+                events,
+                ..Default::default()
+            },
+            |ui| {
+                response = Some(
+                    ui.allocate_ui(vec2(300.0, 200.0), |ui| {
+                        ListView::new(id_salt, row_count).show(ui, state, |row, i| {
+                            row.cell(0, &format!("Row {i}"), None);
+                        })
+                    })
+                    .inner,
+                );
+                let _ = ui.button("below the list");
+            },
+        );
+        output.textures_delta.clear();
+        response.unwrap()
+    }
+
+    #[test]
+    fn list_view_no_input_smoke() {
+        let ctx = egui::Context::default();
+        apply_with(&ctx, &Palette::default());
+
+        let mut state = ListState::default();
+        let response = show_list(&ctx, "list_smoke", 10, &mut state, Vec::new());
+
+        assert_eq!(state.cursor, 0);
+        assert_eq!(response.activated, None);
+    }
+
+    #[test]
+    fn list_view_clamps_cursor() {
+        let ctx = egui::Context::default();
+        apply_with(&ctx, &Palette::default());
+
+        let mut state = ListState { cursor: 99 };
+        let response = show_list(&ctx, "list_clamp", 10, &mut state, Vec::new());
+
+        assert_eq!(state.cursor, 9);
+        assert!(response.cursor_changed);
+    }
+
+    #[test]
+    fn list_view_arrow_down_moves_cursor_when_focused() {
+        let ctx = egui::Context::default();
+        apply_with(&ctx, &Palette::default());
+
+        let mut state = ListState::default();
+
+        // Frame 1: register the widget and grab its id.
+        let id = show_list(&ctx, "list_arrow", 10, &mut state, Vec::new())
+            .response
+            .id;
+        ctx.memory_mut(|m| m.request_focus(id));
+
+        // Frame 2: re-register with focus now set, no input yet.
+        // `Memory::set_focus_lock_filter` only takes effect if the widget
+        // already had focus *last* frame, so this warm-up frame is needed
+        // before arrow keys are routed to the list instead of being treated
+        // as a focus-change request.
+        show_list(&ctx, "list_arrow", 10, &mut state, Vec::new());
+
+        // Frame 3: send ArrowDown.
+        let response = show_list(
+            &ctx,
+            "list_arrow",
+            10,
+            &mut state,
+            vec![Event::Key {
+                key: Key::ArrowDown,
+                physical_key: None,
+                pressed: true,
+                repeat: false,
+                modifiers: Modifiers::NONE,
+            }],
+        );
+
+        assert_eq!(state.cursor, 1);
+        assert!(response.cursor_changed);
+        // The button placed after the list in `show_list` must not have
+        // stolen focus: rows are not focusable, so only the list itself
+        // handles the vertical-arrows event filter.
+        assert!(ctx.memory(|m| m.has_focus(id)));
+    }
+
+    #[test]
+    fn list_view_end_and_enter() {
+        let ctx = egui::Context::default();
+        apply_with(&ctx, &Palette::default());
+
+        let mut state = ListState::default();
+        let row_count = 10;
+
+        let id = show_list(&ctx, "list_end_enter", row_count, &mut state, Vec::new())
+            .response
+            .id;
+        ctx.memory_mut(|m| m.request_focus(id));
+        show_list(&ctx, "list_end_enter", row_count, &mut state, Vec::new());
+
+        show_list(
+            &ctx,
+            "list_end_enter",
+            row_count,
+            &mut state,
+            vec![Event::Key {
+                key: Key::End,
+                physical_key: None,
+                pressed: true,
+                repeat: false,
+                modifiers: Modifiers::NONE,
+            }],
+        );
+        assert_eq!(state.cursor, row_count - 1);
+
+        // No extra warm-up frame needed here: the list kept focus across the
+        // End frame, so `set_focus_lock_filter`'s had-focus-last-frame check
+        // is already satisfied for this Enter frame.
+        let response = show_list(
+            &ctx,
+            "list_end_enter",
+            row_count,
+            &mut state,
+            vec![Event::Key {
+                key: Key::Enter,
+                physical_key: None,
+                pressed: true,
+                repeat: false,
+                modifiers: Modifiers::NONE,
+            }],
+        );
+
+        assert_eq!(response.activated, Some(row_count - 1));
+    }
+
+    #[test]
+    fn list_view_keys_ignored_without_focus() {
+        let ctx = egui::Context::default();
+        apply_with(&ctx, &Palette::default());
+
+        let mut state = ListState::default();
+
+        // Two warm-up frames, no focus requested.
+        show_list(&ctx, "list_unfocused", 10, &mut state, Vec::new());
+        show_list(&ctx, "list_unfocused", 10, &mut state, Vec::new());
+
+        let response = show_list(
+            &ctx,
+            "list_unfocused",
+            10,
+            &mut state,
+            vec![Event::Key {
+                key: Key::ArrowDown,
+                physical_key: None,
+                pressed: true,
+                repeat: false,
+                modifiers: Modifiers::NONE,
+            }],
+        );
+
+        assert_eq!(state.cursor, 0);
+        assert!(!response.cursor_changed);
+    }
+
+    #[test]
+    fn list_view_does_not_leak_item_spacing_into_caller() {
+        let ctx = egui::Context::default();
+        apply_with(&ctx, &Palette::default());
+
+        let mut state = ListState::default();
+        let mut spacing_before_and_after: Option<(f32, f32)> = None;
+        let mut output = ctx.run_ui(RawInput::default(), |ui| {
+            let before = ui.spacing().item_spacing.y;
+            assert_ne!(before, 0.0, "test setup: default spacing must be nonzero");
+
+            ListView::new("list_spacing", 10).show(ui, &mut state, |row, i| {
+                row.cell(0, &format!("Row {i}"), None);
+            });
+
+            spacing_before_and_after = Some((before, ui.spacing().item_spacing.y));
+        });
+        output.textures_delta.clear();
+
+        let (before, after) = spacing_before_and_after.unwrap();
+        assert_eq!(before, after);
     }
 }

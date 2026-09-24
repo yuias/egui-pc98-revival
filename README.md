@@ -118,6 +118,32 @@ egui_pc98_revival::SegmentBar::new(10, 0.0)
     .show_interactive(ui, &mut self.volume);
 ```
 
+### List view
+
+`ListView` is a keyboard-driven scrolling list: a column header, a full-width
+selection bar that follows the cursor (Up/Down/PageUp/PageDown/Home/End), and
+priority-based column dropping when narrow. `state.cursor` is the persistent
+selection; `add_row` draws each visible row through `ListRow::cell` (or
+`cell_ui` for custom widgets); `activated` is set on Enter or a double-click:
+
+```rust
+let columns = [
+    egui_pc98_revival::Column::new("NAME", egui_pc98_revival::ColumnWidth::Fill { min_cells: 12 }),
+    egui_pc98_revival::Column::new("SIZE", egui_pc98_revival::ColumnWidth::Cells(7))
+        .align(egui::Align::Max)
+        .drop_priority(1),
+];
+let response = egui_pc98_revival::ListView::new("files", names.len())
+    .columns(&columns)
+    .show(ui, &mut self.list_state, |row, i| {
+        row.cell(0, names[i], None);
+        row.cell(1, &sizes[i], None);
+    });
+if let Some(i) = response.activated {
+    // Enter or double-click on row `i`.
+}
+```
+
 ## Feature flags
 
 - `bundled-font` (on by default): bundles a baseline-aligned copy of the

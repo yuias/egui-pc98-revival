@@ -4,7 +4,7 @@
 //!
 //! Set `PC98_DEMO_ZOOM` (e.g. `1.5`) to preview other display scale factors.
 
-use egui_pc98_revival::{FKey, TabStyle};
+use egui_pc98_revival::{Column, ColumnWidth, FKey, ListState, ListView, TabStyle};
 
 const FKEY_ITEMS: [FKey<'static>; 10] = [
     FKey {
@@ -94,6 +94,7 @@ struct DemoApp {
     drive_tab: usize,
     info_tab: usize,
     volume: f32,
+    files_list: ListState,
 }
 
 impl Default for DemoApp {
@@ -113,6 +114,7 @@ impl Default for DemoApp {
             drive_tab: 0,
             info_tab: 0,
             volume: 0.6,
+            files_list: ListState::default(),
         }
     }
 }
@@ -187,19 +189,39 @@ impl eframe::App for DemoApp {
                                 );
                             },
                             |ui| {
-                                egui::ScrollArea::vertical()
-                                    .auto_shrink([false, false])
-                                    .show(ui, |ui| {
-                                        for (i, name) in FILES.iter().enumerate() {
-                                            if ui
-                                                .selectable_label(self.selected_file == i, *name)
-                                                .clicked()
-                                            {
-                                                self.selected_file = i;
-                                                self.status = format!("Selected {name}");
-                                            }
+                                // Row 0 is a directory; the rest are files indented under it.
+                                let columns = [
+                                    Column::new("NAME", ColumnWidth::Fill { min_cells: 12 }),
+                                    Column::new("SIZE", ColumnWidth::Cells(7))
+                                        .align(egui::Align::Max)
+                                        .drop_priority(1),
+                                    Column::new("DATE", ColumnWidth::Cells(8)).drop_priority(2),
+                                ];
+                                let list_response = ListView::new("files_list", FILES.len() + 1)
+                                    .columns(&columns)
+                                    .show(ui, &mut self.files_list, |row, i| {
+                                        if i == 0 {
+                                            row.cell(0, "DOS\\", None);
+                                        } else {
+                                            let index = i - 1;
+                                            row.indent(1);
+                                            row.cell(0, FILES[index], None);
+                                            // Fake size/date derived from the row index.
+                                            let size = 512 + (index * 1237) % 90_000;
+                                            row.cell(1, &size.to_string(), None);
+                                            let month = index % 12 + 1;
+                                            let day = index % 28 + 1;
+                                            row.cell(2, &format!("{month:02}-{day:02}"), None);
                                         }
                                     });
+                                if list_response.cursor_changed && self.files_list.cursor > 0 {
+                                    self.selected_file = self.files_list.cursor - 1;
+                                }
+                                if let Some(row) = list_response.activated
+                                    && row > 0
+                                {
+                                    self.status = format!("Opened {}", FILES[row - 1]);
+                                }
                             },
                         );
                     if files_response.response.clicked() {
