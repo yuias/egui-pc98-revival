@@ -10,6 +10,7 @@ use crate::widgets::paint_frame;
 pub struct TitledPanel<'a> {
     title: &'a str,
     focused: bool,
+    double: bool,
 }
 
 impl<'a> TitledPanel<'a> {
@@ -18,12 +19,19 @@ impl<'a> TitledPanel<'a> {
         Self {
             title,
             focused: true,
+            double: false,
         }
     }
 
     /// Unfocused panels draw the title strip and frame in `dim`.
     pub fn focused(mut self, focused: bool) -> Self {
         self.focused = focused;
+        self
+    }
+
+    /// Draws a double-line frame instead of the single 1-dot frame.
+    pub fn double_frame(mut self, double: bool) -> Self {
+        self.double = double;
         self
     }
 
@@ -97,6 +105,16 @@ impl<'a> TitledPanel<'a> {
 
         // Drawn last so the border stays on top of the content.
         paint_frame(ui.painter(), outer, frame_color);
+        if self.double {
+            // Inner top edge sits on the title strip's bottom edge, not 2 dots
+            // below the outer top, so it never crosses the title text.
+            let d2 = dots(ui.ctx(), 2.0);
+            let inner = Rect::from_min_max(
+                pos2(outer.min.x + d2, title_rect.max.y),
+                pos2(outer.max.x - d2, outer.max.y - d2),
+            );
+            paint_frame(ui.painter(), inner, frame_color);
+        }
 
         InnerResponse { inner, response }
     }
@@ -201,5 +219,18 @@ mod tests {
         output.textures_delta.clear();
 
         assert!(!slot_ran);
+    }
+
+    #[test]
+    fn double_frame_panel_smoke_test() {
+        let ctx = egui::Context::default();
+        apply_with(&ctx, &Palette::default());
+
+        let mut output = ctx.run_ui(RawInput::default(), |ui| {
+            TitledPanel::new("T").double_frame(true).show(ui, |ui| {
+                ui.label("x");
+            });
+        });
+        output.textures_delta.clear();
     }
 }

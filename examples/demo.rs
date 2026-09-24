@@ -99,6 +99,7 @@ struct DemoApp {
     position: f32,
     playing: bool,
     confirm_delete: bool,
+    info_double_frame: bool,
 }
 
 impl Default for DemoApp {
@@ -127,6 +128,7 @@ impl Default for DemoApp {
             position: 0.0,
             playing: false,
             confirm_delete: false,
+            info_double_frame: false,
         }
     }
 }
@@ -271,6 +273,7 @@ impl eframe::App for DemoApp {
 
                     let info_response = egui_pc98_revival::TitledPanel::new("INFO")
                         .focused(self.focused_panel == 1)
+                        .double_frame(self.info_double_frame)
                         .show(&mut columns[1], |ui| {
                             egui_pc98_revival::tab_strip(
                                 ui,
@@ -439,6 +442,12 @@ impl eframe::App for DemoApp {
                                 );
                                 let inset = egui_pc98_revival::dots(ui.ctx(), 4.0);
                                 ui.put(rect.shrink(inset), egui::Label::new("DOUBLE FRAME"));
+
+                                egui_pc98_revival::text_checkbox(
+                                    ui,
+                                    &mut self.info_double_frame,
+                                    "Double frame on INFO",
+                                );
                             }
                         });
                     if info_response.response.clicked() {

@@ -90,6 +90,13 @@ egui_pc98_revival::paint_double_frame(ui.painter(), rect, palette.frame);
 Rects smaller than 6 dots on either side get only the outer line, since a
 smaller inner rect would collapse or invert.
 
+`TitledPanel::double_frame(true)` draws the same double border around the
+whole panel instead of the single 1-dot frame:
+
+```rust
+egui_pc98_revival::TitledPanel::new("FILES").double_frame(true).show(ui, |ui| { .. });
+```
+
 `fit_by_priority` decides which items to drop when a row of widths does not
 fit the available space, dropping the highest-priority droppable item first:
 
