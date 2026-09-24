@@ -186,6 +186,10 @@ impl eframe::App for DemoApp {
                         // The font maps the JIS full-width minus to U+2212, not U+FF0D.
                         ui.label("「ＰＣ−９８０１ シリーズ」");
                         ui.label("日本電気株式会社製 パーソナルコンピュータ");
+                        ui.label(egui_pc98_revival::text::truncate_tail(
+                            "日本電気株式会社製 パーソナルコンピュータ",
+                            20,
+                        ));
                         if ui
                             .button("Run")
                             .on_hover_text("Run the selected file")

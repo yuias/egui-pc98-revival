@@ -4,6 +4,7 @@
 pub mod fonts;
 pub mod palette;
 pub mod style;
+pub mod text;
 pub mod widgets;
 
 pub use palette::Palette;

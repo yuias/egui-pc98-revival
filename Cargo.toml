@@ -24,6 +24,7 @@ bundled-font = []
 
 [dependencies]
 egui = "0.36"
+unicode-width = "0.2"
 
 [dev-dependencies]
 eframe = { version = "0.36", default-features = false, features = ["wgpu", "default_fonts"] }

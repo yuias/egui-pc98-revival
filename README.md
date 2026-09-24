@@ -52,6 +52,25 @@ egui_pc98_revival::paint_frame(ui.painter(), rect, palette.frame);
 `Palette` also carries semantic roles (`ok`, `warn`, `danger`, `selected_fg`,
 `hover_fg`) so status colors stay consistent with the active theme.
 
+### Text cells
+
+`text::cells` and friends count East Asian Wide, Fullwidth and Ambiguous
+characters as 2 cells and everything else as 1, with overrides where the
+bundled font differs (it draws Greek, Cyrillic and `−` full-width), so the
+count matches how the bundled font renders text (box drawing and `▶` are not in the bundled font and fall
+back to egui's default font, so widget-produced text stays ASCII):
+
+```rust
+use egui_pc98_revival::text;
+
+assert_eq!(text::cells("日本語"), 6);
+assert_eq!(text::truncate_tail("日本電気株式会社製パーソナルコンピュータ", 12), "日本電気...");
+let cell_w = text::cell_width(ui);
+```
+
+`truncate_tail` truncates to whole cells and appends an ASCII `"..."`
+(never `…`) when it cuts text short.
+
 ## Feature flags
 
 - `bundled-font` (on by default): bundles a baseline-aligned copy of the
