@@ -53,6 +53,15 @@ impl eframe::App for DemoApp {
                 ui.label(format!("Clicked {} times", self.clicked_count));
                 ui.checkbox(&mut self.checked, "Toggle me");
                 ui.label(&self.status);
+
+                let (swatch_rect, _) =
+                    ui.allocate_exact_size(egui::vec2(32.0, 32.0), egui::Sense::hover());
+                egui_pc98_revival::paint_dither(
+                    ui.painter(),
+                    swatch_rect,
+                    egui_pc98_revival::palette::ACCENT,
+                    None,
+                );
             });
         });
     }
