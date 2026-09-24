@@ -3,7 +3,16 @@ name = "egui-pc98-revival"
 version = "0.1.0"
 edition = "2024"
 description = "PC-98 style theme, bitmap font and widgets for egui"
-license = "MIT AND OFL-1.1"
+license = "MIT AND OFL-1.1"   # code is MIT; the bundled font is OFL-1.1
+readme = "README.md"
+keywords = ["egui", "theme", "pc-98", "retro", "gui"]
+categories = ["gui"]
+include = [
+  "Cargo.toml", "README.md", "LICENSE", "src/**", "examples/**",
+  "assets/fonts/KH-Dot-Kodenmachou-16-Ki.ttf",
+  "assets/fonts/README_KHDotFont.txt",
+  "assets/fonts/SIL_Open_Font_License_1.1.txt",
+]
 
 [features]
 default = ["bundled-font"]
