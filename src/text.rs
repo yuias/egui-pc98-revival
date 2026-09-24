@@ -68,6 +68,57 @@ pub fn truncate_tail(s: &str, max: usize) -> String {
     format!("{}...", truncate_cells(s, max - 3))
 }
 
+/// Gap drawn between the end of the text and its next repeat in a marquee.
+const MARQUEE_GAP: &str = "   "; // 3 cells
+
+/// The `max_cells`-wide window of `text` looped with a 3-space gap, scrolled
+/// left by `step` cells; a wide char cut by either edge becomes spaces.
+pub fn marquee_slice(text: &str, max_cells: usize, step: usize) -> String {
+    if max_cells == 0 {
+        return String::new();
+    }
+
+    // The ring is `text` (zero-width chars dropped) followed by the gap,
+    // repeated; `ring_cells` is always > 0 thanks to the 3-space gap.
+    let ring: Vec<(char, usize)> = text
+        .chars()
+        .map(|c| (c, char_cells(c)))
+        .filter(|&(_, w)| w > 0)
+        .chain(MARQUEE_GAP.chars().map(|c| (c, 1)))
+        .collect();
+    let ring_cells: usize = ring.iter().map(|&(_, w)| w).sum();
+    let start = step % ring_cells;
+
+    let mut out = String::new();
+    let mut out_cells = 0;
+    let mut p = 0;
+    for &(c, w) in ring.iter().cycle() {
+        if out_cells >= max_cells {
+            break;
+        }
+        let span_end = p + w;
+        if span_end <= start {
+            // Span entirely before the scroll offset: skip it.
+        } else if p < start {
+            // Span straddles the scroll offset: only its tail is visible,
+            // but a wide char can't be shown half-cut, so pad with spaces.
+            let spaces = (span_end - start).min(max_cells - out_cells);
+            out.push_str(&" ".repeat(spaces));
+            out_cells += spaces;
+        } else if w <= max_cells - out_cells {
+            out.push(c);
+            out_cells += w;
+        } else {
+            // Doesn't fit in the remaining budget: pad with spaces and stop.
+            let remaining = max_cells - out_cells;
+            out.push_str(&" ".repeat(remaining));
+            out_cells += remaining;
+        }
+        p += w;
+    }
+    out
+}
+
 /// Width in points of one half-width cell in the `Body` font of `ui`.
 pub fn cell_width(ui: &Ui) -> f32 {
     // Measuring an actual glyph (rather than `font_size / 2`) keeps this
@@ -131,6 +182,47 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn marquee_slice_ascii_scrolls_and_wraps() {
+        assert_eq!(marquee_slice("abcdef", 4, 0), "abcd");
+        assert_eq!(marquee_slice("abcdef", 4, 2), "cdef");
+        assert_eq!(marquee_slice("abcdef", 4, 4), "ef  ");
+        assert_eq!(marquee_slice("abcdef", 4, 6), "   a");
+        assert_eq!(marquee_slice("abcdef", 4, 8), " abc");
+        assert_eq!(marquee_slice("abcdef", 4, 9), "abcd");
+    }
+
+    #[test]
+    fn marquee_slice_never_splits_wide_chars() {
+        assert_eq!(marquee_slice("日本", 3, 0), "日 ");
+        assert_eq!(marquee_slice("日本", 3, 1), " 本");
+        assert_eq!(marquee_slice("日本", 3, 2), "本 ");
+        assert_eq!(marquee_slice("日本", 3, 3), "   ");
+        assert_eq!(marquee_slice("日本", 3, 6), " 日");
+        assert_eq!(marquee_slice("日本語x", 4, 1), " 本 ");
+    }
+
+    #[test]
+    fn marquee_slice_always_fills_max_cells() {
+        let samples = ["", "a", "abcdef", "日本語テキスト", "○×°123", "a\nb"];
+        for s in samples {
+            for max in 0..10 {
+                for step in 0..30 {
+                    assert_eq!(
+                        cells(&marquee_slice(s, max, step)),
+                        max,
+                        "marquee_slice({s:?}, {max}, {step}) did not fill {max} cells"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn marquee_slice_zero_max_is_empty() {
+        assert_eq!(marquee_slice("abcdef", 0, 0), "");
     }
 
     #[test]
