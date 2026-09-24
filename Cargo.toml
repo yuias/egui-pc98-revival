@@ -1,0 +1,18 @@
+[package]
+name = "egui-pc98-revival"
+version = "0.1.0"
+edition = "2024"
+description = "PC-98 style theme, bitmap font and widgets for egui"
+license = "MIT AND OFL-1.1"
+
+[features]
+default = ["bundled-font"]
+bundled-font = []
+
+[dependencies]
+egui = "0.36"
+
+# Only the wgpu renderer and default fonts are needed on Windows;
+# eframe's default glow/x11/wayland/accesskit features are unused here.
+[dev-dependencies]
+eframe = { version = "0.36", default-features = false, features = ["wgpu", "default_fonts"] }
