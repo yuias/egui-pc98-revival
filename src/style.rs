@@ -79,7 +79,9 @@ pub fn pc98_style(palette: &Palette, ppp: f32) -> egui::Style {
     w.noninteractive.bg_stroke = Stroke::new(d, palette.frame);
     w.noninteractive.fg_stroke = Stroke::new(d, palette.text);
 
-    w.inactive.bg_fill = palette.well;
+    // Also the scroll handle and slider rail, which sit on `extreme_bg_color`
+    // (`well`) and would vanish if this were `well` too.
+    w.inactive.bg_fill = palette.dim;
     w.inactive.weak_bg_fill = palette.ground;
     w.inactive.bg_stroke = Stroke::new(d, palette.frame);
     w.inactive.fg_stroke = Stroke::new(d, palette.text);
@@ -94,12 +96,17 @@ pub fn pc98_style(palette: &Palette, ppp: f32) -> egui::Style {
     w.active.bg_stroke = Stroke::new(d, palette.frame);
     w.active.fg_stroke = Stroke::new(d, Color32::BLACK);
 
-    w.open.bg_fill = palette.frame;
-    w.open.weak_bg_fill = palette.frame;
+    // `open.weak_bg_fill` also fills the focused window's title bar, whose
+    // text egui draws in the plain text color, so this pair must contrast
+    // with `text` rather than with black.
+    w.open.bg_fill = palette.bar_bg;
+    w.open.weak_bg_fill = palette.bar_bg;
     w.open.bg_stroke = Stroke::new(d, palette.frame);
-    w.open.fg_stroke = Stroke::new(d, Color32::BLACK);
+    w.open.fg_stroke = Stroke::new(d, palette.bar_fg);
 
     style.spacing.scroll = egui::style::ScrollStyle::solid();
+    // The edge fade blends content into the background, i.e. off-palette colors.
+    style.spacing.scroll.fade.strength = 0.0;
 
     let font_id = FontId::new(font_size_for_ppp(ppp), FontFamily::Monospace);
     for size in style.text_styles.values_mut() {
