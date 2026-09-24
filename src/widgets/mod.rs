@@ -1,5 +1,6 @@
 //! PC-98 widgets built on top of [`crate::style`].
 
+mod dialog;
 mod dither;
 mod fkey;
 mod frame;
@@ -9,6 +10,7 @@ mod panel;
 mod segment;
 mod tabs;
 
+pub use dialog::{Dialog, DialogResponse};
 pub use dither::{paint_dither, paint_scrim};
 pub use fkey::{FKey, fkey_bar};
 pub use frame::paint_frame;

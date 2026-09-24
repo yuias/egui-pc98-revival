@@ -144,6 +144,24 @@ if let Some(i) = response.activated {
 }
 ```
 
+### Dialog
+
+`Dialog` shows a `TitledPanel` centered over a dithered scrim; the background
+does not take input. Esc requests close, and so does a `ui.close()` call from
+inside `add_contents`; the caller owns the flag that keeps the dialog open:
+
+```rust
+if self.show_help {
+    let result = egui_pc98_revival::Dialog::new(egui::Id::new("help"), "HELP")
+        .show(ui.ctx(), |ui| {
+            ui.label("Esc  Close this dialog");
+        });
+    if result.close_requested {
+        self.show_help = false;
+    }
+}
+```
+
 ## Feature flags
 
 - `bundled-font` (on by default): bundles a baseline-aligned copy of the

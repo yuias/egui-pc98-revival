@@ -4,7 +4,15 @@
 //!
 //! Set `PC98_DEMO_ZOOM` (e.g. `1.5`) to preview other display scale factors.
 
-use egui_pc98_revival::{Column, ColumnWidth, FKey, ListState, ListView, TabStyle};
+use egui_pc98_revival::{Column, ColumnWidth, Dialog, FKey, ListState, ListView, TabStyle};
+
+const HELP_KEYS: [(&str, &str); 5] = [
+    ("F1", "Show this help"),
+    ("Up/Down", "Move the cursor"),
+    ("PgUp/PgDn", "Move by a page"),
+    ("Enter", "Open the selected file"),
+    ("Esc", "Close a dialog"),
+];
 
 const FKEY_ITEMS: [FKey<'static>; 10] = [
     FKey {
@@ -95,6 +103,7 @@ struct DemoApp {
     info_tab: usize,
     volume: f32,
     files_list: ListState,
+    show_help: bool,
 }
 
 impl Default for DemoApp {
@@ -115,6 +124,7 @@ impl Default for DemoApp {
             info_tab: 0,
             volume: 0.6,
             files_list: ListState::default(),
+            show_help: false,
         }
     }
 }
@@ -149,6 +159,12 @@ impl eframe::App for DemoApp {
                         }
                     });
                 });
+                ui.menu_button("Help", |ui| {
+                    if ui.button("Keys...").clicked() {
+                        self.show_help = true;
+                        ui.close();
+                    }
+                });
             });
         });
 
@@ -164,6 +180,9 @@ impl eframe::App for DemoApp {
                 if let Some(index) = egui_pc98_revival::fkey_bar(ui, &FKEY_ITEMS) {
                     let item = FKEY_ITEMS[index];
                     self.status = format!("{} {} pressed", item.key, item.label);
+                    if item.key == "F1" {
+                        self.show_help = true;
+                    }
                     if item.key == "F10" {
                         ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
                     }
@@ -346,6 +365,37 @@ impl eframe::App for DemoApp {
                     ui.label("FPU: none");
                 });
             });
+
+        if self.show_help {
+            let palette = egui_pc98_revival::palette(ui.ctx());
+            let size = egui::vec2(
+                egui_pc98_revival::dots(ui.ctx(), 280.0),
+                egui_pc98_revival::dots(ui.ctx(), 200.0),
+            );
+            let result =
+                Dialog::new(egui::Id::new("help"), "HELP")
+                    .size(size)
+                    .show(ui.ctx(), |ui| {
+                        for (key, desc) in HELP_KEYS {
+                            ui.horizontal(|ui| {
+                                ui.colored_label(palette.accent, key);
+                                ui.label(desc);
+                            });
+                        }
+                        ui.add_space(egui_pc98_revival::dots(ui.ctx(), 8.0));
+                        egui_pc98_revival::fkey_bar(
+                            ui,
+                            &[FKey {
+                                key: "ESC",
+                                label: "Close",
+                            }],
+                        )
+                        .is_some()
+                    });
+            if result.close_requested || result.inner {
+                self.show_help = false;
+            }
+        }
     }
 }
 
