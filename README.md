@@ -30,12 +30,13 @@ egui_pc98_revival::TitledPanel::new("FILES")
     );
 // `panel(ui, title, add_contents)` is shorthand for `TitledPanel::new(title).show(..)`.
 let items = [
-    egui_pc98_revival::FKey { key: "F1", label: "Help" },
-    egui_pc98_revival::FKey { key: "F10", label: "Quit" },
+    egui_pc98_revival::FKey::new("F1", "Help").key_shortcut(egui::Key::F1),
+    egui_pc98_revival::FKey::new("F10", "Quit").key_shortcut(egui::Key::F10),
 ];
 if let Some(clicked) = egui_pc98_revival::fkey_bar(ui, &items) {
-    // handle click on items[clicked]
+    // handle a click on items[clicked], or its bound key having been pressed
 }
+// A disabled slot (`.enabled(false)`) draws dimmed and ignores both.
 ```
 
 `apply` forces the dark theme, since the PC-98 look has no light variant.

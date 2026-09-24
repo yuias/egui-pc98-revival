@@ -15,46 +15,18 @@ const HELP_KEYS: [(&str, &str); 5] = [
 ];
 
 const FKEY_ITEMS: [FKey<'static>; 10] = [
-    FKey {
-        key: "F1",
-        label: "Help",
-    },
-    FKey {
-        key: "F2",
-        label: "Open",
-    },
-    FKey {
-        key: "F3",
-        label: "Save",
-    },
-    FKey {
-        key: "F4",
-        label: "Close",
-    },
-    FKey {
-        key: "F5",
-        label: "Refresh",
-    },
-    FKey {
-        key: "F6",
-        label: "Copy",
-    },
-    FKey {
-        key: "F7",
-        label: "Move",
-    },
-    FKey {
-        key: "F8",
-        label: "Delete",
-    },
-    FKey {
-        key: "F9",
-        label: "Rename",
-    },
-    FKey {
-        key: "F10",
-        label: "Quit",
-    },
+    FKey::new("F1", "Help").key_shortcut(egui::Key::F1),
+    FKey::new("F2", "Open").key_shortcut(egui::Key::F2),
+    FKey::new("F3", "Save")
+        .key_shortcut(egui::Key::F3)
+        .enabled(false),
+    FKey::new("F4", "Close").key_shortcut(egui::Key::F4),
+    FKey::new("F5", "Refresh").key_shortcut(egui::Key::F5),
+    FKey::new("F6", "Copy").key_shortcut(egui::Key::F6),
+    FKey::new("F7", "Move").key_shortcut(egui::Key::F7),
+    FKey::new("F8", "Delete").key_shortcut(egui::Key::F8),
+    FKey::new("F9", "Rename").key_shortcut(egui::Key::F9),
+    FKey::new("F10", "Quit").key_shortcut(egui::Key::F10),
 ];
 
 const FILES: [&str; 25] = [
@@ -385,10 +357,7 @@ impl eframe::App for DemoApp {
                         ui.add_space(egui_pc98_revival::dots(ui.ctx(), 8.0));
                         egui_pc98_revival::fkey_bar(
                             ui,
-                            &[FKey {
-                                key: "ESC",
-                                label: "Close",
-                            }],
+                            &[FKey::new("ESC", "Close").key_shortcut(egui::Key::Escape)],
                         )
                         .is_some()
                     });
