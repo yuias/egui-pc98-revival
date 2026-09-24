@@ -215,6 +215,38 @@ if self.show_help {
 }
 ```
 
+### Message box
+
+`message_box` is a `Dialog` with a text body and an `fkey_bar` button row;
+the caller owns the open flag and stops calling it once a result comes back:
+
+```rust
+if self.confirm_delete {
+    let result = egui_pc98_revival::message_box(
+        ui.ctx(),
+        egui::Id::new("confirm"),
+        "DELETE",
+        "Delete FOO.TXT?\nThis cannot be undone.",
+        &[
+            egui_pc98_revival::FKey::new("Y", "Yes").key_shortcut(egui::Key::Y),
+            egui_pc98_revival::FKey::new("N", "No").key_shortcut(egui::Key::N),
+        ],
+    );
+    match result {
+        Some(egui_pc98_revival::MessageBoxResult::Button(0)) => { /* deleted */ }
+        Some(egui_pc98_revival::MessageBoxResult::Button(_))
+        | Some(egui_pc98_revival::MessageBoxResult::Dismissed) => { /* cancelled */ }
+        None => {}
+    }
+    if result.is_some() {
+        self.confirm_delete = false;
+    }
+}
+```
+
+`Button(i)` is a click or shortcut on button `i`; `Dismissed` is Esc with no
+button bound to `Key::Escape` (a bound button wins over the dismiss path).
+
 ## Feature flags
 
 - `bundled-font` (on by default): bundles a baseline-aligned copy of the

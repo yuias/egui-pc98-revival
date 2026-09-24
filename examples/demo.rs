@@ -5,7 +5,8 @@
 //! Set `PC98_DEMO_ZOOM` (e.g. `1.5`) to preview other display scale factors.
 
 use egui_pc98_revival::{
-    Column, ColumnWidth, Dialog, DotIcon, FKey, ListState, ListView, TabStyle,
+    Column, ColumnWidth, Dialog, DotIcon, FKey, ListState, ListView, MessageBoxResult, TabStyle,
+    message_box,
 };
 
 const DOT_ICONS: [DotIcon; 8] = [
@@ -95,6 +96,7 @@ struct DemoApp {
     playback_source: u8,
     position: f32,
     playing: bool,
+    confirm_delete: bool,
 }
 
 impl Default for DemoApp {
@@ -122,6 +124,7 @@ impl Default for DemoApp {
             playback_source: 0,
             position: 0.0,
             playing: false,
+            confirm_delete: false,
         }
     }
 }
@@ -189,6 +192,9 @@ impl eframe::App for DemoApp {
                     self.status = format!("{} {} pressed", item.key, item.label);
                     if item.key == "F1" {
                         self.show_help = true;
+                    }
+                    if item.key == "F8" {
+                        self.confirm_delete = true;
                     }
                     if item.key == "F10" {
                         ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
@@ -475,6 +481,32 @@ impl eframe::App for DemoApp {
                     });
             if result.close_requested || result.inner {
                 self.show_help = false;
+            }
+        }
+
+        if self.confirm_delete {
+            let name = FILES[self.selected_file];
+            let result = message_box(
+                ui.ctx(),
+                egui::Id::new("confirm"),
+                "DELETE",
+                &format!("Delete {name}?\nThis cannot be undone."),
+                &[
+                    FKey::new("Y", "Yes").key_shortcut(egui::Key::Y),
+                    FKey::new("N", "No").key_shortcut(egui::Key::N),
+                ],
+            );
+            match result {
+                Some(MessageBoxResult::Button(0)) => {
+                    self.status = format!("Deleted {name}");
+                }
+                Some(MessageBoxResult::Button(_)) | Some(MessageBoxResult::Dismissed) => {
+                    self.status = String::from("Cancelled");
+                }
+                None => {}
+            }
+            if result.is_some() {
+                self.confirm_delete = false;
             }
         }
     }
