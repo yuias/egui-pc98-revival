@@ -8,4 +8,4 @@ pub mod widgets;
 
 pub use palette::Palette;
 pub use style::{apply, apply_with, ensure};
-pub use widgets::{header_bar, panel};
+pub use widgets::{FKey, fkey_bar, header_bar, panel};
