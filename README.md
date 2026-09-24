@@ -145,6 +145,27 @@ if let Some(i) = response.activated {
 }
 ```
 
+### Dot icons and icon button
+
+`DotIcon` variants are glyph-free: the font draws Ambiguous symbols (○●■□
+etc.) full-width, so a real icon set is drawn from axis-aligned dot rects
+instead. `icon_button` is a square, framed button; `paint_dot_icon` paints an
+icon directly, scaled by a whole number of dots to fit the given rect:
+
+```rust
+if egui_pc98_revival::icon_button(ui, egui_pc98_revival::DotIcon::Play).clicked() {
+    // ...
+}
+
+let rect = egui::Rect::from_min_size(pos, egui::vec2(28.0, 28.0)); // 2x a 7x7 icon at 2 dots/cell
+egui_pc98_revival::paint_dot_icon(
+    ui.painter(),
+    rect,
+    egui_pc98_revival::DotIcon::Pause,
+    egui_pc98_revival::palette(ui.ctx()).text,
+);
+```
+
 ### Dialog
 
 `Dialog` shows a `TitledPanel` centered over a dithered scrim; the background

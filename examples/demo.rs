@@ -4,7 +4,20 @@
 //!
 //! Set `PC98_DEMO_ZOOM` (e.g. `1.5`) to preview other display scale factors.
 
-use egui_pc98_revival::{Column, ColumnWidth, Dialog, FKey, ListState, ListView, TabStyle};
+use egui_pc98_revival::{
+    Column, ColumnWidth, Dialog, DotIcon, FKey, ListState, ListView, TabStyle,
+};
+
+const DOT_ICONS: [DotIcon; 8] = [
+    DotIcon::Play,
+    DotIcon::Pause,
+    DotIcon::Stop,
+    DotIcon::ArrowUp,
+    DotIcon::ArrowDown,
+    DotIcon::ArrowLeft,
+    DotIcon::ArrowRight,
+    DotIcon::Check,
+];
 
 const HELP_KEYS: [(&str, &str); 5] = [
     ("F1", "Show this help"),
@@ -225,7 +238,7 @@ impl eframe::App for DemoApp {
                             egui_pc98_revival::tab_strip(
                                 ui,
                                 &mut self.info_tab,
-                                &["GENERAL", "SOUND"],
+                                &["GENERAL", "SOUND", "CONTROLS"],
                                 TabStyle::Bar,
                             );
                             if self.info_tab == 0 {
@@ -249,7 +262,7 @@ impl eframe::App for DemoApp {
                                 );
                                 ui.text_edit_singleline(&mut self.text);
                                 ui.label(&self.status);
-                            } else {
+                            } else if self.info_tab == 1 {
                                 let palette = egui_pc98_revival::palette(ui.ctx());
                                 // Triangle wave, 2-second period.
                                 let phase = (self.started.elapsed().as_secs_f32() / 2.0).fract();
@@ -274,6 +287,29 @@ impl eframe::App for DemoApp {
                                     .warn(8, palette.accent)
                                     .show_interactive(ui, &mut self.volume);
                                 ui.label(format!("Volume: {:.0}%", self.volume * 100.0));
+                            } else {
+                                ui.label("Icon buttons (click one):");
+                                ui.horizontal(|ui| {
+                                    for icon in DOT_ICONS {
+                                        if egui_pc98_revival::icon_button(ui, icon).clicked() {
+                                            self.status = format!("{icon:?} clicked");
+                                        }
+                                    }
+                                });
+
+                                ui.label("paint_dot_icon at 2x:");
+                                let side = egui_pc98_revival::dots(ui.ctx(), 14.0);
+                                let (rect, _) = ui.allocate_exact_size(
+                                    egui::vec2(side, side),
+                                    egui::Sense::hover(),
+                                );
+                                let text = egui_pc98_revival::palette(ui.ctx()).text;
+                                egui_pc98_revival::paint_dot_icon(
+                                    ui.painter(),
+                                    rect,
+                                    egui_pc98_revival::DotIcon::Play,
+                                    text,
+                                );
                             }
                         });
                     if info_response.response.clicked() {

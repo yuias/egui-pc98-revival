@@ -12,7 +12,7 @@ pub use layout::fit_by_priority;
 pub use palette::Palette;
 pub use style::{apply, apply_with, dot, dots, ensure, palette, snap_rect};
 pub use widgets::{
-    Column, ColumnWidth, Dialog, DialogResponse, FKey, ListResponse, ListRow, ListState, ListView,
-    SegmentBar, TabStyle, TitledPanel, fkey_bar, header_bar, paint_dither, paint_frame,
-    paint_scrim, panel, tab_strip,
+    Column, ColumnWidth, Dialog, DialogResponse, DotIcon, FKey, ListResponse, ListRow, ListState,
+    ListView, SegmentBar, TabStyle, TitledPanel, fkey_bar, header_bar, icon_button, paint_dither,
+    paint_dot_icon, paint_frame, paint_scrim, panel, tab_strip,
 };
