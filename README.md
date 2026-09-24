@@ -21,9 +21,14 @@ egui_pc98_revival::apply(&cc.egui_ctx);
 egui_pc98_revival::ensure(ctx);
 
 // A titled panel with a function-key bar below it:
-egui_pc98_revival::panel(ui, "FILES", |ui| {
-    ui.label("some content");
-});
+egui_pc98_revival::TitledPanel::new("FILES")
+    .focused(true)
+    .show_with_title(
+        ui,
+        |ui| { ui.label("25 FILES"); }, // right-aligned slot in the title strip
+        |ui| { ui.label("some content"); },
+    );
+// `panel(ui, title, add_contents)` is shorthand for `TitledPanel::new(title).show(..)`.
 let items = [
     egui_pc98_revival::FKey { key: "F1", label: "Help" },
     egui_pc98_revival::FKey { key: "F10", label: "Quit" },

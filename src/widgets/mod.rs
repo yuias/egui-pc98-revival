@@ -10,4 +10,4 @@ pub use dither::{paint_dither, paint_scrim};
 pub use fkey::{FKey, fkey_bar};
 pub use frame::paint_frame;
 pub use header::header_bar;
-pub use panel::panel;
+pub use panel::{TitledPanel, panel};

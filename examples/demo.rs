@@ -90,6 +90,7 @@ struct DemoApp {
     mode: usize,
     drive: u8,
     count: i32,
+    focused_panel: usize,
 }
 
 impl Default for DemoApp {
@@ -105,6 +106,7 @@ impl Default for DemoApp {
             mode: 0,
             drive: 0,
             count: 3,
+            focused_panel: 0,
         }
     }
 }
@@ -166,42 +168,58 @@ impl eframe::App for DemoApp {
 
             ui.allocate_ui(egui::vec2(ui.available_width(), panels_h), |ui| {
                 ui.columns(2, |columns| {
-                    egui_pc98_revival::panel(&mut columns[0], "FILES", |ui| {
-                        egui::ScrollArea::vertical()
-                            .auto_shrink([false, false])
-                            .show(ui, |ui| {
-                                for (i, name) in FILES.iter().enumerate() {
-                                    if ui
-                                        .selectable_label(self.selected_file == i, *name)
-                                        .clicked()
-                                    {
-                                        self.selected_file = i;
-                                        self.status = format!("Selected {name}");
-                                    }
-                                }
-                            });
-                    });
+                    let files_response = egui_pc98_revival::TitledPanel::new("FILES")
+                        .focused(self.focused_panel == 0)
+                        .show_with_title(
+                            &mut columns[0],
+                            |ui| {
+                                ui.label(format!("{} FILES", FILES.len()));
+                            },
+                            |ui| {
+                                egui::ScrollArea::vertical()
+                                    .auto_shrink([false, false])
+                                    .show(ui, |ui| {
+                                        for (i, name) in FILES.iter().enumerate() {
+                                            if ui
+                                                .selectable_label(self.selected_file == i, *name)
+                                                .clicked()
+                                            {
+                                                self.selected_file = i;
+                                                self.status = format!("Selected {name}");
+                                            }
+                                        }
+                                    });
+                            },
+                        );
+                    if files_response.response.clicked() {
+                        self.focused_panel = 0;
+                    }
 
-                    egui_pc98_revival::panel(&mut columns[1], "INFO", |ui| {
-                        // The font maps the JIS full-width minus to U+2212, not U+FF0D.
-                        ui.label("「ＰＣ−９８０１ シリーズ」");
-                        ui.label("日本電気株式会社製 パーソナルコンピュータ");
-                        ui.label(egui_pc98_revival::text::truncate_tail(
-                            "日本電気株式会社製 パーソナルコンピュータ",
-                            20,
-                        ));
-                        if ui
-                            .button("Run")
-                            .on_hover_text("Run the selected file")
-                            .clicked()
-                        {
-                            self.status = format!("Running {}", FILES[self.selected_file]);
-                        }
-                        ui.checkbox(&mut self.checked, "Enable turbo mode");
-                        ui.add(egui::Slider::new(&mut self.slider, 0.0..=100.0).text("volume"));
-                        ui.text_edit_singleline(&mut self.text);
-                        ui.label(&self.status);
-                    });
+                    let info_response = egui_pc98_revival::TitledPanel::new("INFO")
+                        .focused(self.focused_panel == 1)
+                        .show(&mut columns[1], |ui| {
+                            // The font maps the JIS full-width minus to U+2212, not U+FF0D.
+                            ui.label("「ＰＣ−９８０１ シリーズ」");
+                            ui.label("日本電気株式会社製 パーソナルコンピュータ");
+                            ui.label(egui_pc98_revival::text::truncate_tail(
+                                "日本電気株式会社製 パーソナルコンピュータ",
+                                20,
+                            ));
+                            if ui
+                                .button("Run")
+                                .on_hover_text("Run the selected file")
+                                .clicked()
+                            {
+                                self.status = format!("Running {}", FILES[self.selected_file]);
+                            }
+                            ui.checkbox(&mut self.checked, "Enable turbo mode");
+                            ui.add(egui::Slider::new(&mut self.slider, 0.0..=100.0).text("volume"));
+                            ui.text_edit_singleline(&mut self.text);
+                            ui.label(&self.status);
+                        });
+                    if info_response.response.clicked() {
+                        self.focused_panel = 1;
+                    }
                 });
             });
 
