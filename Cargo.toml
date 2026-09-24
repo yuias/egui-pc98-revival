@@ -2,8 +2,12 @@
 name = "egui-pc98-revival"
 version = "0.1.0"
 edition = "2024"
+# egui 0.36 requires it.
+rust-version = "1.95"
 description = "PC-98 style theme, bitmap font and widgets for egui"
 license = "MIT"
+repository = "https://github.com/yuias/egui-pc98-revival"
+documentation = "https://docs.rs/egui-pc98-revival"
 readme = "README.md"
 keywords = ["egui", "theme", "pc-98", "retro", "gui"]
 categories = ["gui"]
