@@ -275,7 +275,7 @@ impl eframe::App for DemoApp {
                             egui_pc98_revival::tab_strip(
                                 ui,
                                 &mut self.info_tab,
-                                &["GENERAL", "SOUND", "CONTROLS"],
+                                &["GENERAL", "SOUND", "CONTROLS", "MISC"],
                                 TabStyle::Bar,
                             );
                             if self.info_tab == 0 {
@@ -324,7 +324,7 @@ impl eframe::App for DemoApp {
                                     .warn(8, palette.accent)
                                     .show_interactive(ui, &mut self.volume);
                                 ui.label(format!("Volume: {:.0}%", self.volume * 100.0));
-                            } else {
+                            } else if self.info_tab == 2 {
                                 ui.label("Icon buttons (click one):");
                                 ui.horizontal(|ui| {
                                     for icon in DOT_ICONS {
@@ -424,6 +424,21 @@ impl eframe::App for DemoApp {
                                         ui.add_space(gap);
                                     }
                                 });
+                            } else {
+                                ui.label("paint_double_frame:");
+                                let width = 24.0 * egui_pc98_revival::text::cell_width(ui);
+                                let height = 3.0 * ui.text_style_height(&egui::TextStyle::Body);
+                                let (rect, _) = ui.allocate_exact_size(
+                                    egui::vec2(width, height),
+                                    egui::Sense::hover(),
+                                );
+                                egui_pc98_revival::paint_double_frame(
+                                    ui.painter(),
+                                    rect,
+                                    egui_pc98_revival::palette(ui.ctx()).frame,
+                                );
+                                let inset = egui_pc98_revival::dots(ui.ctx(), 4.0);
+                                ui.put(rect.shrink(inset), egui::Label::new("DOUBLE FRAME"));
                             }
                         });
                     if info_response.response.clicked() {

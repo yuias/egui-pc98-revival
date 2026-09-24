@@ -77,6 +77,19 @@ egui_pc98_revival::paint_frame(ui.painter(), rect, palette.frame);
 `Palette` also carries semantic roles (`ok`, `warn`, `danger`, `selected_fg`,
 `hover_fg`) so status colors stay consistent with the active theme.
 
+### Double-line frame
+
+`paint_double_frame` paints an outer line, a 1-dot gap, and an inner line,
+for an FD/FILMTN-style border; content should be inset at least 4 dots to
+clear it:
+
+```rust
+egui_pc98_revival::paint_double_frame(ui.painter(), rect, palette.frame);
+```
+
+Rects smaller than 6 dots on either side get only the outer line, since a
+smaller inner rect would collapse or invert.
+
 `fit_by_priority` decides which items to drop when a row of widths does not
 fit the available space, dropping the highest-priority droppable item first:
 
