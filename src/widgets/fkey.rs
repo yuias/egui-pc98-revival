@@ -107,8 +107,8 @@ fn fit_fkey_items(area_width: f32, key_widths: &[f32], longest_label_w: f32, ins
 mod tests {
     use egui::RawInput;
 
-    use crate::style::apply_with;
     use crate::Palette;
+    use crate::style::apply_with;
 
     use super::*;
 

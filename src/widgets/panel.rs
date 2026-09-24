@@ -1,6 +1,8 @@
 //! Titled PC-98 pane: cyan title strip, 1-dot frame, clipped content area.
 
-use egui::{Align, InnerResponse, Layout, Rect, Sense, Stroke, StrokeKind, Ui, UiBuilder, pos2, vec2};
+use egui::{
+    Align, InnerResponse, Layout, Rect, Sense, Stroke, StrokeKind, Ui, UiBuilder, pos2, vec2,
+};
 
 use crate::style::{dot, palette};
 
@@ -41,8 +43,12 @@ pub fn panel<R>(
     let inner = add_contents(&mut content_ui);
 
     // Drawn last so the border stays on top of the content.
-    ui.painter()
-        .rect_stroke(outer, 0, Stroke::new(dot, palette.frame), StrokeKind::Inside);
+    ui.painter().rect_stroke(
+        outer,
+        0,
+        Stroke::new(dot, palette.frame),
+        StrokeKind::Inside,
+    );
 
     let response = ui.allocate_rect(outer, Sense::hover());
     InnerResponse { inner, response }
