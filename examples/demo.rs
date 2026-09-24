@@ -10,13 +10,20 @@ impl eframe::App for DemoApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         egui_pc98_revival::ensure(ui.ctx());
 
+        egui::Panel::top("header")
+            .frame(egui::Frame::NONE)
+            .show(ui, |ui| {
+                egui_pc98_revival::header_bar(ui, "egui PC-98 Revival", None);
+            });
+
         egui::CentralPanel::default().show(ui, |ui| {
-            ui.label("egui PC-98 Revival");
-            if ui.button("Click me").clicked() {
-                self.clicked_count += 1;
-            }
-            ui.label(format!("Clicked {} times", self.clicked_count));
-            ui.checkbox(&mut self.checked, "Toggle me");
+            egui_pc98_revival::panel(ui, "INFO", |ui| {
+                if ui.button("Click me").clicked() {
+                    self.clicked_count += 1;
+                }
+                ui.label(format!("Clicked {} times", self.clicked_count));
+                ui.checkbox(&mut self.checked, "Toggle me");
+            });
         });
     }
 }
