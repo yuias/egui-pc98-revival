@@ -60,6 +60,12 @@ after the window moves to a display with a different OS scale factor.
 cargo run --example demo
 ```
 
+## Stock widget notes
+
+`apply` restyles egui's own widgets (buttons, menus, combo boxes, windows,
+scroll areas, and so on), but `egui::ProgressBar` rounds its ends regardless
+of the style. Pass `.corner_radius(0)` to keep it square.
+
 ## Full-width character note
 
 The bundled font maps the JIS full-width minus sign to U+2212 (MINUS SIGN,

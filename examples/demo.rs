@@ -1,5 +1,8 @@
-//! Full demo: header, function-key bar, two side-by-side panels and a hue
-//! swatch row, all styled through [`egui_pc98_revival`].
+//! Full demo: menu bar, header, function-key bar, two side-by-side panels,
+//! a hue swatch row and a floating window with stock egui widgets, all styled
+//! through [`egui_pc98_revival`].
+//!
+//! Set `PC98_DEMO_ZOOM` (e.g. `1.5`) to preview other display scale factors.
 
 use egui_pc98_revival::FKey;
 
@@ -46,7 +49,7 @@ const FKEY_ITEMS: [FKey<'static>; 10] = [
     },
 ];
 
-const FILES: [&str; 10] = [
+const FILES: [&str; 25] = [
     "AUTOEXEC.BAT",
     "CONFIG.SYS",
     "COMMAND.COM",
@@ -57,7 +60,24 @@ const FILES: [&str; 10] = [
     "README.TXT",
     "BASIC.EXE",
     "N88BASIC.EXE",
+    "FORMAT.COM",
+    "SYS.COM",
+    "EDLIN.EXE",
+    "DISKCOPY.EXE",
+    "CHKDSK.EXE",
+    "SWITCH.EXE",
+    "SPEED.EXE",
+    "TOUHOU.EXE",
+    "MUSIC.M",
+    "SOUND.BAS",
+    "FM.DRV",
+    "PMD.COM",
+    "MOUSE.SYS",
+    "EMM386.EXE",
+    "HIMEM.SYS",
 ];
+
+const MODES: [&str; 3] = ["640x400 16 colors", "640x400 8 colors", "640x200 8 colors"];
 
 struct DemoApp {
     started: std::time::Instant,
@@ -66,6 +86,10 @@ struct DemoApp {
     slider: f32,
     text: String,
     status: String,
+    show_window: bool,
+    mode: usize,
+    drive: u8,
+    count: i32,
 }
 
 impl Default for DemoApp {
@@ -77,6 +101,10 @@ impl Default for DemoApp {
             slider: 50.0,
             text: String::from("N88-BASIC(86)"),
             status: String::from("Ready."),
+            show_window: true,
+            mode: 0,
+            drive: 0,
+            count: 3,
         }
     }
 }
@@ -88,6 +116,31 @@ impl eframe::App for DemoApp {
         let clock = format!("{:.1}s", self.started.elapsed().as_secs_f32());
         ui.ctx()
             .request_repaint_after(std::time::Duration::from_millis(100));
+
+        egui::Panel::top("menu").show(ui, |ui| {
+            egui::MenuBar::new().ui(ui, |ui| {
+                ui.menu_button("File", |ui| {
+                    if ui.button("Open...").clicked() {
+                        self.status = String::from("File > Open");
+                    }
+                    if ui.button("Save").clicked() {
+                        self.status = String::from("File > Save");
+                    }
+                    ui.separator();
+                    if ui.button("Quit").clicked() {
+                        ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
+                    }
+                });
+                ui.menu_button("View", |ui| {
+                    ui.checkbox(&mut self.show_window, "Settings window");
+                    ui.menu_button("Mode", |ui| {
+                        for (i, mode) in MODES.iter().enumerate() {
+                            ui.radio_value(&mut self.mode, i, *mode);
+                        }
+                    });
+                });
+            });
+        });
 
         egui::Panel::top("header")
             .frame(egui::Frame::NONE)
@@ -114,22 +167,30 @@ impl eframe::App for DemoApp {
             ui.allocate_ui(egui::vec2(ui.available_width(), panels_h), |ui| {
                 ui.columns(2, |columns| {
                     egui_pc98_revival::panel(&mut columns[0], "FILES", |ui| {
-                        for (i, name) in FILES.iter().enumerate() {
-                            if ui
-                                .selectable_label(self.selected_file == i, *name)
-                                .clicked()
-                            {
-                                self.selected_file = i;
-                                self.status = format!("Selected {name}");
-                            }
-                        }
+                        egui::ScrollArea::vertical()
+                            .auto_shrink([false, false])
+                            .show(ui, |ui| {
+                                for (i, name) in FILES.iter().enumerate() {
+                                    if ui
+                                        .selectable_label(self.selected_file == i, *name)
+                                        .clicked()
+                                    {
+                                        self.selected_file = i;
+                                        self.status = format!("Selected {name}");
+                                    }
+                                }
+                            });
                     });
 
                     egui_pc98_revival::panel(&mut columns[1], "INFO", |ui| {
                         // The font maps the JIS full-width minus to U+2212, not U+FF0D.
                         ui.label("「ＰＣ−９８０１ シリーズ」");
                         ui.label("日本電気株式会社製 パーソナルコンピュータ");
-                        if ui.button("Run").clicked() {
+                        if ui
+                            .button("Run")
+                            .on_hover_text("Run the selected file")
+                            .clicked()
+                        {
                             self.status = format!("Running {}", FILES[self.selected_file]);
                         }
                         ui.checkbox(&mut self.checked, "Enable turbo mode");
@@ -159,6 +220,41 @@ impl eframe::App for DemoApp {
                 }
             });
         });
+
+        let progress = (self.started.elapsed().as_secs_f32() / 10.0).fract();
+        egui::Window::new("SETTINGS")
+            .open(&mut self.show_window)
+            .default_pos([520.0, 300.0])
+            .show(ui.ctx(), |ui| {
+                egui::ComboBox::from_label("Display")
+                    .selected_text(MODES[self.mode])
+                    .show_ui(ui, |ui| {
+                        for (i, mode) in MODES.iter().enumerate() {
+                            ui.selectable_value(&mut self.mode, i, *mode);
+                        }
+                    });
+                ui.horizontal(|ui| {
+                    for (i, drive) in ["A:", "B:", "C:"].iter().enumerate() {
+                        ui.radio_value(&mut self.drive, i as u8, *drive);
+                    }
+                });
+                ui.add(
+                    egui::DragValue::new(&mut self.count)
+                        .range(1..=9)
+                        .prefix("Count: "),
+                );
+                // ProgressBar rounds its ends unless told otherwise.
+                ui.add(
+                    egui::ProgressBar::new(progress)
+                        .show_percentage()
+                        .corner_radius(0),
+                );
+                ui.separator();
+                ui.collapsing("Details", |ui| {
+                    ui.label("Memory: 640KB");
+                    ui.label("FPU: none");
+                });
+            });
     }
 }
 
@@ -174,6 +270,12 @@ fn main() -> eframe::Result {
         "egui PC-98 Revival",
         native_options,
         Box::new(|cc| {
+            if let Some(zoom) = std::env::var("PC98_DEMO_ZOOM")
+                .ok()
+                .and_then(|z| z.parse::<f32>().ok())
+            {
+                cc.egui_ctx.set_zoom_factor(zoom);
+            }
             egui_pc98_revival::apply(&cc.egui_ctx);
             Ok(Box::new(DemoApp::default()))
         }),
