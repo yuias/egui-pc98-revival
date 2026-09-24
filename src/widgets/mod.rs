@@ -10,6 +10,7 @@ mod list;
 mod panel;
 mod segment;
 mod tabs;
+mod toggle;
 
 pub use dialog::{Dialog, DialogResponse};
 pub use dither::{paint_dither, paint_scrim};
@@ -21,3 +22,4 @@ pub use list::{Column, ColumnWidth, ListResponse, ListRow, ListState, ListView};
 pub use panel::{TitledPanel, panel};
 pub use segment::SegmentBar;
 pub use tabs::{TabStyle, tab_strip};
+pub use toggle::{toggle_box, toggle_box_colored};

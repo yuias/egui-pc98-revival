@@ -89,6 +89,8 @@ struct DemoApp {
     volume: f32,
     files_list: ListState,
     show_help: bool,
+    mute: bool,
+    solo: bool,
 }
 
 impl Default for DemoApp {
@@ -110,6 +112,8 @@ impl Default for DemoApp {
             volume: 0.6,
             files_list: ListState::default(),
             show_help: false,
+            mute: false,
+            solo: false,
         }
     }
 }
@@ -310,6 +314,19 @@ impl eframe::App for DemoApp {
                                     egui_pc98_revival::DotIcon::Play,
                                     text,
                                 );
+
+                                ui.label("Toggle boxes:");
+                                ui.horizontal(|ui| {
+                                    let ok = egui_pc98_revival::palette(ui.ctx()).ok;
+                                    egui_pc98_revival::toggle_box(ui, &mut self.mute, "M");
+                                    egui_pc98_revival::toggle_box_colored(
+                                        ui,
+                                        &mut self.solo,
+                                        "S",
+                                        ok,
+                                    );
+                                    ui.label(format!("mute: {}, solo: {}", self.mute, self.solo));
+                                });
                             }
                         });
                     if info_response.response.clicked() {

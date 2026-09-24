@@ -166,6 +166,16 @@ egui_pc98_revival::paint_dot_icon(
 );
 ```
 
+### Toggle box
+
+`toggle_box` draws an `[M]`-style letter box that flips a `bool` on click or,
+when focused, on Space/Enter; `toggle_box_colored` picks a different "on" fill:
+
+```rust
+egui_pc98_revival::toggle_box(ui, &mut self.mute, "M");
+egui_pc98_revival::toggle_box_colored(ui, &mut self.solo, "S", palette.ok);
+```
+
 ### Dialog
 
 `Dialog` shows a `TitledPanel` centered over a dithered scrim; the background
