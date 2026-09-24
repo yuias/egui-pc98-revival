@@ -8,6 +8,7 @@ use egui::{FontData, FontDefinitions, FontFamily, FontTweak};
 /// Name the bundled font is registered under.
 pub const FONT_NAME: &str = "KH-Dot-Kodenmachou-16";
 
+/// Raw bytes of the bundled KH Dot Kodenmachou 16 TTF.
 #[cfg(feature = "bundled-font")]
 pub const KH_DOT_16_TTF: &[u8] = include_bytes!(concat!(
     env!("CARGO_MANIFEST_DIR"),

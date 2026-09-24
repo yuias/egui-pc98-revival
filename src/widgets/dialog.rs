@@ -85,6 +85,7 @@ impl<'a> Dialog<'a> {
 
 /// Result of showing a [`Dialog`].
 pub struct DialogResponse<R> {
+    /// Value returned by `add_contents`.
     pub inner: R,
     /// Esc (when topmost and no popup is open), `ui.close()` inside the
     /// dialog, or a backdrop click if enabled. The caller stops showing the dialog.

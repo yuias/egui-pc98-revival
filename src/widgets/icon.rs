@@ -10,13 +10,21 @@ use crate::widgets::paint_frame;
 /// Glyph-free icon drawn from axis-aligned dot rects.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum DotIcon {
+    /// Right-pointing triangle.
     Play,
+    /// Two vertical bars.
     Pause,
+    /// Filled square.
     Stop,
+    /// Upward-pointing arrow.
     ArrowUp,
+    /// Downward-pointing arrow.
     ArrowDown,
+    /// Leftward-pointing arrow.
     ArrowLeft,
+    /// Rightward-pointing arrow.
     ArrowRight,
+    /// Checkmark.
     Check,
 }
 

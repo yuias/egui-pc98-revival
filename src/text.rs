@@ -6,7 +6,7 @@ use unicode_width::UnicodeWidthChar;
 
 /// Cells one char occupies: East Asian Wide/Fullwidth and Ambiguous = 2,
 /// control and zero-width chars = 0, everything else = 1, except where the
-/// bundled font's advance disagrees (see [`BUNDLED_FONT_OVERRIDES`]).
+/// bundled font's advance disagrees (see `BUNDLED_FONT_OVERRIDES` below).
 pub fn char_cells(c: char) -> usize {
     let cp = c as u32;
     BUNDLED_FONT_OVERRIDES

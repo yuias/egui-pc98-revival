@@ -7,7 +7,9 @@ use crate::style::{dot, dots, palette};
 /// One function-key slot: key caption, action label, optional keyboard binding.
 #[derive(Clone, Copy, Debug)]
 pub struct FKey<'a> {
+    /// Key caption drawn in `dim` at the left of the slot, e.g. "F1".
     pub key: &'a str,
+    /// Action label drawn on the filled part of the slot.
     pub label: &'a str,
     /// Pressing this returns the slot index from `fkey_bar`, like a click.
     pub shortcut: Option<egui::KeyboardShortcut>,

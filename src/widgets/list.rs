@@ -20,7 +20,10 @@ pub enum ColumnWidth {
     /// Fixed width in half-width cells.
     Cells(usize),
     /// Takes the width left over; never narrower than `min_cells`.
-    Fill { min_cells: usize },
+    Fill {
+        /// Minimum width, in half-width cells, before the column is dropped.
+        min_cells: usize,
+    },
 }
 
 /// One column of a list header/rows.
