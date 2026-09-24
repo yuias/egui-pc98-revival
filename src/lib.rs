@@ -14,7 +14,7 @@ pub use style::{apply, apply_with, dot, dots, ensure, font_id_scaled, palette, s
 pub use widgets::{
     Column, ColumnWidth, Dialog, DialogResponse, DotIcon, FKey, HeaderBar, ListResponse, ListRow,
     ListState, ListView, MessageBoxResult, SegmentBar, TabStyle, TitledPanel, fkey_bar, header_bar,
-    icon_button, message_box, paint_dither, paint_dot_icon, paint_frame, paint_hue_fill,
+    icon_button, key_help, message_box, paint_dither, paint_dot_icon, paint_frame, paint_hue_fill,
     paint_scrim, panel, seek_bar, tab_strip, text_checkbox, text_radio, toggle_box,
     toggle_box_colored,
 };

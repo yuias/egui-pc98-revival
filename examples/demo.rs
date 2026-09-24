@@ -20,11 +20,13 @@ const DOT_ICONS: [DotIcon; 8] = [
     DotIcon::Check,
 ];
 
-const HELP_KEYS: [(&str, &str); 5] = [
+const HELP_KEYS: [(&str, &str); 7] = [
     ("F1", "Show this help"),
+    ("F8", "Confirm delete"),
     ("Up/Down", "Move the cursor"),
     ("PgUp/PgDn", "Move by a page"),
     ("Enter", "Open the selected file"),
+    ("Space", "Toggle a control"),
     ("Esc", "Close a dialog"),
 ];
 
@@ -492,7 +494,6 @@ impl eframe::App for DemoApp {
             });
 
         if self.show_help {
-            let palette = egui_pc98_revival::palette(ui.ctx());
             let size = egui::vec2(
                 egui_pc98_revival::dots(ui.ctx(), 280.0),
                 egui_pc98_revival::dots(ui.ctx(), 200.0),
@@ -501,12 +502,7 @@ impl eframe::App for DemoApp {
                 Dialog::new(egui::Id::new("help"), "HELP")
                     .size(size)
                     .show(ui.ctx(), |ui| {
-                        for (key, desc) in HELP_KEYS {
-                            ui.horizontal(|ui| {
-                                ui.colored_label(palette.accent, key);
-                                ui.label(desc);
-                            });
-                        }
+                        egui_pc98_revival::key_help(ui, &HELP_KEYS);
                         ui.add_space(egui_pc98_revival::dots(ui.ctx(), 8.0));
                         egui_pc98_revival::fkey_bar(
                             ui,

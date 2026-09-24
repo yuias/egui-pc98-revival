@@ -284,6 +284,18 @@ if self.confirm_delete {
 `Button(i)` is a click or shortcut on button `i`; `Dismissed` is Esc with no
 button bound to `Key::Escape` (a bound button wins over the dismiss path).
 
+### Key help
+
+`key_help` draws a two-column list of key/description rows, keys right-aligned
+in `accent`, for a HELP dialog or similar:
+
+```rust
+egui_pc98_revival::key_help(
+    ui,
+    &[("F1", "Show this help"), ("Esc", "Close a dialog")],
+);
+```
+
 ## Feature flags
 
 - `bundled-font` (on by default): bundles a baseline-aligned copy of the
