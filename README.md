@@ -35,6 +35,23 @@ if let Some(clicked) = egui_pc98_revival::fkey_bar(ui, &items) {
 
 `apply` forces the dark theme, since the PC-98 look has no light variant.
 
+### Custom widgets
+
+Build your own widgets on the same dot grid and palette as the bundled ones:
+
+```rust
+let d = egui_pc98_revival::dot(ui.ctx());       // 1 dot, in points
+let inset = egui_pc98_revival::dots(ui.ctx(), 4.0); // n dots, in points
+let palette = egui_pc98_revival::palette(ui.ctx());
+
+let rect = egui_pc98_revival::snap_rect(ui.ctx(), ui.available_rect_before_wrap());
+ui.painter().rect_filled(rect.shrink(inset), 0, palette.ground);
+egui_pc98_revival::paint_frame(ui.painter(), rect, palette.frame);
+```
+
+`Palette` also carries semantic roles (`ok`, `warn`, `danger`, `selected_fg`,
+`hover_fg`) so status colors stay consistent with the active theme.
+
 ## Feature flags
 
 - `bundled-font` (on by default): bundles a baseline-aligned copy of the

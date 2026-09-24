@@ -2,7 +2,7 @@
 
 use egui::{Align, InnerResponse, Layout, Rect, Sense, Ui, UiBuilder, pos2, vec2};
 
-use crate::style::{dot, palette};
+use crate::style::{dots, palette};
 use crate::widgets::paint_frame;
 
 /// PC-98 style pane: cyan title strip, 1-dot frame. Fills all available space in `ui`;
@@ -13,26 +13,25 @@ pub fn panel<R>(
     add_contents: impl FnOnce(&mut Ui) -> R,
 ) -> InnerResponse<R> {
     let palette = palette(ui.ctx());
-    let dot = dot(ui.ctx());
     let font_id = egui::TextStyle::Body.resolve(ui.style());
 
     let outer = ui.available_rect_before_wrap();
     let painter = ui.painter();
 
     let title_galley = painter.layout_no_wrap(title.to_owned(), font_id, palette.title_fg);
-    let title_h = title_galley.size().y + 4.0 * dot;
+    let title_h = title_galley.size().y + dots(ui.ctx(), 4.0);
     let title_rect = Rect::from_min_size(outer.min, vec2(outer.width(), title_h));
 
     painter.rect_filled(outer, 0, palette.ground);
     painter.rect_filled(title_rect, 0, palette.title_bg);
     let text_pos = pos2(
-        title_rect.min.x + 8.0,
+        title_rect.min.x + dots(ui.ctx(), 8.0),
         title_rect.center().y - title_galley.size().y / 2.0,
     );
     painter.galley(text_pos, title_galley, palette.title_fg);
 
     let content_rect =
-        Rect::from_min_max(outer.min + vec2(0.0, title_h), outer.max).shrink(4.0 * dot);
+        Rect::from_min_max(outer.min + vec2(0.0, title_h), outer.max).shrink(dots(ui.ctx(), 4.0));
     let mut content_ui = ui.new_child(
         UiBuilder::new()
             .max_rect(content_rect)

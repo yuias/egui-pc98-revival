@@ -161,7 +161,7 @@ impl eframe::App for DemoApp {
             });
 
         egui::CentralPanel::default().show(ui, |ui| {
-            let swatch_h = 64.0;
+            let swatch_h = egui_pc98_revival::dots(ui.ctx(), 64.0);
             let panels_h = (ui.available_height() - swatch_h).max(0.0);
 
             ui.allocate_ui(egui::vec2(ui.available_width(), panels_h), |ui| {
@@ -201,16 +201,17 @@ impl eframe::App for DemoApp {
                 });
             });
 
-            ui.add_space(8.0);
+            ui.add_space(egui_pc98_revival::dots(ui.ctx(), 8.0));
 
             ui.horizontal(|ui| {
+                let swatch = egui_pc98_revival::dots(ui.ctx(), 24.0);
                 for hue in egui_pc98_revival::palette::HUES {
                     let (solid_rect, _) =
-                        ui.allocate_exact_size(egui::vec2(24.0, 24.0), egui::Sense::hover());
+                        ui.allocate_exact_size(egui::vec2(swatch, swatch), egui::Sense::hover());
                     ui.painter().rect_filled(solid_rect, 0, hue);
 
                     let (dither_rect, _) =
-                        ui.allocate_exact_size(egui::vec2(24.0, 24.0), egui::Sense::hover());
+                        ui.allocate_exact_size(egui::vec2(swatch, swatch), egui::Sense::hover());
                     egui_pc98_revival::paint_dither(
                         ui.painter(),
                         dither_rect,

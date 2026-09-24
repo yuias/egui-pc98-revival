@@ -2,7 +2,7 @@
 
 use egui::{Rect, Sense, Ui, pos2, vec2};
 
-use crate::style::{dot, palette};
+use crate::style::{dot, dots, palette};
 
 /// One function-key slot: the key label (e.g. `"F1"`) and its action label.
 #[derive(Clone, Copy, Debug)]
@@ -16,7 +16,7 @@ pub fn fkey_bar(ui: &mut Ui, items: &[FKey<'_>]) -> Option<usize> {
     let palette = palette(ui.ctx());
     let dot = dot(ui.ctx());
     let font_id = egui::TextStyle::Body.resolve(ui.style());
-    let inset = 4.0;
+    let inset = dots(ui.ctx(), 4.0);
 
     let outer = ui.available_rect_before_wrap();
     let painter = ui.painter();
@@ -41,7 +41,7 @@ pub fn fkey_bar(ui: &mut Ui, items: &[FKey<'_>]) -> Option<usize> {
         .map(|g| g.size().y)
         .fold(0.0f32, f32::max);
 
-    let height = text_height + 2.0 * (2.0 + 2.0 * dot);
+    let height = text_height + 2.0 * (dots(ui.ctx(), 2.0) + 2.0 * dot);
     let bar_rect = Rect::from_min_size(outer.min, vec2(ui.available_width(), height));
     painter.rect_filled(bar_rect, 0, palette.ground);
 
@@ -69,8 +69,8 @@ pub fn fkey_bar(ui: &mut Ui, items: &[FKey<'_>]) -> Option<usize> {
             let key_right = key_pos.x + key_galley.size().x;
 
             let label_rect = Rect::from_min_max(
-                pos2(key_right + inset, slot.top() + 2.0),
-                pos2(slot.right() - inset, slot.bottom() - 2.0),
+                pos2(key_right + inset, slot.top() + dots(ui.ctx(), 2.0)),
+                pos2(slot.right() - inset, slot.bottom() - dots(ui.ctx(), 2.0)),
             );
             let label_bg = if response.hovered() {
                 palette.accent
