@@ -100,6 +100,24 @@ egui_pc98_revival::tab_strip(
 );
 ```
 
+### Segment bar
+
+`SegmentBar` draws a row or column of equal blocks with 1-dot gaps (level
+meter, volume blocks, gauge). `show` is display-only; `show_interactive`
+also reads click, drag and mouse wheel input and writes whole-segment steps
+back into `value`:
+
+```rust
+egui_pc98_revival::SegmentBar::new(12, level)
+    .warn(10, palette.warn) // top 2 segments turn warn-colored when lit
+    .show(ui);
+
+egui_pc98_revival::SegmentBar::new(10, 0.0)
+    .fill(palette.frame)
+    .warn(8, palette.accent)
+    .show_interactive(ui, &mut self.volume);
+```
+
 ## Feature flags
 
 - `bundled-font` (on by default): bundles a baseline-aligned copy of the

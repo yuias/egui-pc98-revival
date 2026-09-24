@@ -93,6 +93,7 @@ struct DemoApp {
     focused_panel: usize,
     drive_tab: usize,
     info_tab: usize,
+    volume: f32,
 }
 
 impl Default for DemoApp {
@@ -111,6 +112,7 @@ impl Default for DemoApp {
             focused_panel: 0,
             drive_tab: 0,
             info_tab: 0,
+            volume: 0.6,
         }
     }
 }
@@ -235,7 +237,30 @@ impl eframe::App for DemoApp {
                                 ui.text_edit_singleline(&mut self.text);
                                 ui.label(&self.status);
                             } else {
-                                ui.label("No sound devices.");
+                                let palette = egui_pc98_revival::palette(ui.ctx());
+                                // Triangle wave, 2-second period.
+                                let phase = (self.started.elapsed().as_secs_f32() / 2.0).fract();
+                                let level = if phase < 0.5 {
+                                    phase * 2.0
+                                } else {
+                                    2.0 - phase * 2.0
+                                };
+
+                                ui.horizontal(|ui| {
+                                    egui_pc98_revival::SegmentBar::new(12, level)
+                                        .warn(10, palette.warn)
+                                        .show(ui);
+                                    egui_pc98_revival::SegmentBar::new(12, level)
+                                        .warn(10, palette.warn)
+                                        .vertical(true)
+                                        .show(ui);
+                                });
+
+                                egui_pc98_revival::SegmentBar::new(10, 0.0)
+                                    .fill(palette.frame)
+                                    .warn(8, palette.accent)
+                                    .show_interactive(ui, &mut self.volume);
+                                ui.label(format!("Volume: {:.0}%", self.volume * 100.0));
                             }
                         });
                     if info_response.response.clicked() {
