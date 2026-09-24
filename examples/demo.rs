@@ -453,6 +453,19 @@ impl eframe::App for DemoApp {
                                     egui_pc98_revival::text_spinner(ui);
                                     ui.label("LOADING...");
                                 });
+
+                                egui_pc98_revival::marquee(
+                                    ui,
+                                    "PC-9801 シリーズ 日本電気株式会社製 パーソナルコンピュータ",
+                                    24,
+                                    egui_pc98_revival::palette(ui.ctx()).frame,
+                                );
+                                egui_pc98_revival::marquee(
+                                    ui,
+                                    "READY",
+                                    24,
+                                    egui_pc98_revival::palette(ui.ctx()).frame,
+                                );
                             }
                         });
                     if info_response.response.clicked() {

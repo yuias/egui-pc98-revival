@@ -116,6 +116,21 @@ repaints while visible:
 egui_pc98_revival::text_spinner(ui);
 ```
 
+### Marquee label
+
+`marquee` draws a fixed `max_cells`-wide label: text that fits is shown as
+is; text that overflows pauses for a second, then scrolls left one cell at a
+time with a 3-space gap before looping, never splitting a wide character
+across the visible window. It requests repaints only while the text
+overflows, so a label that fits requests no repaints:
+
+```rust
+egui_pc98_revival::marquee(ui, "PC-9801 シリーズ", 12, palette.frame);
+```
+
+`text::marquee_slice(text, max_cells, step)` computes the same scrolled
+window directly, for custom painting.
+
 ### Text cells
 
 `text::cells` and friends count East Asian Wide, Fullwidth and Ambiguous
