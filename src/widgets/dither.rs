@@ -3,7 +3,7 @@
 
 use egui::{Color32, ColorImage, Id, Painter, Rect, TextureHandle, TextureOptions};
 
-use crate::style::dot;
+use crate::style::{dot, palette};
 
 fn dither_texture_id() -> Id {
     Id::new("egui_pc98_revival::dither")
@@ -38,6 +38,11 @@ pub fn paint_dither(painter: &Painter, rect: Rect, fg: Color32, bg: Option<Color
         });
 
     painter.image(handle.id(), rect, dither_uv(rect, dot(ctx)), fg);
+}
+
+/// Dims everything under `rect` with a 1-dot checker of the palette's `ground`.
+pub fn paint_scrim(painter: &Painter, rect: Rect) {
+    paint_dither(painter, rect, palette(painter.ctx()).ground, None);
 }
 
 /// UV rect so one texel = one dot and texel (0,0) sits at the screen origin.
@@ -97,6 +102,19 @@ mod tests {
         });
         // Loading the texture and laying out glyphs both produce texture
         // deltas; consume them so the test does not leak the delta.
+        output.textures_delta.clear();
+    }
+
+    #[test]
+    fn paint_scrim_smoke_test() {
+        let ctx = egui::Context::default();
+        apply_with(&ctx, &Palette::default());
+
+        let mut output = ctx.run_ui(RawInput::default(), |ui| {
+            let painter = ui.painter();
+            let rect = Rect::from_min_size(pos2(0.0, 0.0), vec2(16.0, 16.0));
+            paint_scrim(painter, rect);
+        });
         output.textures_delta.clear();
     }
 }

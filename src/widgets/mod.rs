@@ -2,10 +2,12 @@
 
 mod dither;
 mod fkey;
+mod frame;
 mod header;
 mod panel;
 
-pub use dither::paint_dither;
+pub use dither::{paint_dither, paint_scrim};
 pub use fkey::{FKey, fkey_bar};
+pub use frame::paint_frame;
 pub use header::header_bar;
 pub use panel::panel;

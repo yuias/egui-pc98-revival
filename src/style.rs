@@ -2,7 +2,7 @@
 //! that keeps a PC-98 style installed as the display scale changes.
 
 use egui::style::HandleShape;
-use egui::{CornerRadius, FontFamily, FontId, Id, Shadow, Stroke, ThemePreference};
+use egui::{CornerRadius, FontFamily, FontId, Id, Rect, Shadow, Stroke, ThemePreference, pos2};
 
 use crate::Palette;
 
@@ -27,6 +27,26 @@ pub fn font_size_for_ppp(ppp: f32) -> f32 {
 /// Dot size for the context's current scale.
 pub fn dot(ctx: &egui::Context) -> f32 {
     dot_for_ppp(ctx.pixels_per_point())
+}
+
+/// `n` dots in logical points at the context's current scale.
+pub fn dots(ctx: &egui::Context, n: f32) -> f32 {
+    n * dot(ctx)
+}
+
+/// Rounds every edge of `rect` to the nearest device pixel for `ppp`. Pure,
+/// so it can be unit-tested without a `Context`.
+pub fn snap_rect_for_ppp(rect: Rect, ppp: f32) -> Rect {
+    let snap = |v: f32| (v * ppp).round() / ppp;
+    Rect::from_min_max(
+        pos2(snap(rect.min.x), snap(rect.min.y)),
+        pos2(snap(rect.max.x), snap(rect.max.y)),
+    )
+}
+
+/// `snap_rect_for_ppp` with the context's `pixels_per_point`.
+pub fn snap_rect(ctx: &egui::Context, rect: Rect) -> Rect {
+    snap_rect_for_ppp(rect, ctx.pixels_per_point())
 }
 
 /// Full PC-98 style for the given palette and scale. Pure; no `Context` needed.
@@ -302,5 +322,32 @@ mod tests {
         ensure(&ctx);
         assert!(!ctx.tessellation_options(|t| t.feathering));
         assert_eq!(palette(&ctx), Palette::PC98);
+    }
+
+    #[test]
+    fn dots_scales_with_dot() {
+        let ctx = egui::Context::default();
+        assert_eq!(dots(&ctx, 4.0), 4.0);
+    }
+
+    #[test]
+    fn snap_rect_rounds_to_device_pixels() {
+        let ppp = 1.5;
+        let rect = Rect::from_min_max(pos2(0.2, 0.9), pos2(10.1, 10.4));
+        let snapped = snap_rect_for_ppp(rect, ppp);
+        let step = 1.0 / ppp;
+        for (snapped_v, original_v) in [
+            (snapped.min.x, rect.min.x),
+            (snapped.min.y, rect.min.y),
+            (snapped.max.x, rect.max.x),
+            (snapped.max.y, rect.max.y),
+        ] {
+            let n = snapped_v / step;
+            assert!(
+                (n - n.round()).abs() < 1e-4,
+                "{snapped_v} is not a multiple of {step}"
+            );
+            assert!((snapped_v - original_v).abs() <= 0.5 * step + 1e-4);
+        }
     }
 }
