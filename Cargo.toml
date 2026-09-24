@@ -25,7 +25,9 @@ bundled-font = []
 [dependencies]
 egui = "0.36"
 
-# Only the wgpu renderer and default fonts are needed on Windows;
-# eframe's default glow/x11/wayland/accesskit features are unused here.
 [dev-dependencies]
 eframe = { version = "0.36", default-features = false, features = ["wgpu", "default_fonts"] }
+
+# winit needs at least one windowing backend on Linux/BSD.
+[target.'cfg(all(unix, not(target_os = "macos")))'.dev-dependencies]
+eframe = { version = "0.36", default-features = false, features = ["x11", "wayland"] }
