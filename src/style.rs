@@ -2,7 +2,9 @@
 //! that keeps a PC-98 style installed as the display scale changes.
 
 use egui::style::HandleShape;
-use egui::{CornerRadius, FontFamily, FontId, Id, Rect, Shadow, Stroke, ThemePreference, pos2};
+use egui::{
+    CornerRadius, FontFamily, FontId, Id, Rect, Shadow, Stroke, TextStyle, ThemePreference, pos2,
+};
 
 use crate::Palette;
 
@@ -206,6 +208,13 @@ pub fn palette(ctx: &egui::Context) -> Palette {
         .unwrap_or_default()
 }
 
+/// The Body font at an integer multiple of its size (for big readouts);
+/// `factor` 0 is treated as 1.
+pub fn font_id_scaled(ctx: &egui::Context, factor: u8) -> FontId {
+    let body = TextStyle::Body.resolve(&ctx.style_of(ctx.theme()));
+    FontId::new(body.size * factor.max(1) as f32, body.family)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -328,6 +337,33 @@ mod tests {
     fn dots_scales_with_dot() {
         let ctx = egui::Context::default();
         assert_eq!(dots(&ctx, 4.0), 4.0);
+    }
+
+    #[test]
+    fn font_id_scaled_doubles_body_size() {
+        let ctx = egui::Context::default();
+        apply_with(&ctx, &Palette::default());
+        let body = TextStyle::Body.resolve(&ctx.style_of(ctx.theme()));
+        let scaled = font_id_scaled(&ctx, 2);
+        assert!((scaled.size - body.size * 2.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn font_id_scaled_zero_is_one_x() {
+        let ctx = egui::Context::default();
+        apply_with(&ctx, &Palette::default());
+        let body = TextStyle::Body.resolve(&ctx.style_of(ctx.theme()));
+        let scaled = font_id_scaled(&ctx, 0);
+        assert!((scaled.size - body.size).abs() < 1e-6);
+    }
+
+    #[test]
+    fn font_id_scaled_keeps_family() {
+        let ctx = egui::Context::default();
+        apply_with(&ctx, &Palette::default());
+        let body = TextStyle::Body.resolve(&ctx.style_of(ctx.theme()));
+        let scaled = font_id_scaled(&ctx, 3);
+        assert_eq!(scaled.family, body.family);
     }
 
     #[test]

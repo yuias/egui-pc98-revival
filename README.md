@@ -225,6 +225,15 @@ is a palette hue drawn solid, 8-15 is the same hue dithered over the background:
 egui_pc98_revival::paint_hue_fill(ui.painter(), rect, index, None);
 ```
 
+### Scaled font
+
+`font_id_scaled` returns the Body font at an integer multiple of its size,
+for big readouts; only integer factors keep the dots crisp:
+
+```rust
+ui.label(egui::RichText::new("03:14").font(egui_pc98_revival::font_id_scaled(ui.ctx(), 2)));
+```
+
 ### Dialog
 
 `Dialog` shows a `TitledPanel` centered over a dithered scrim; the background

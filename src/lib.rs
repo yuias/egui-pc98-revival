@@ -10,7 +10,7 @@ pub mod widgets;
 
 pub use layout::fit_by_priority;
 pub use palette::Palette;
-pub use style::{apply, apply_with, dot, dots, ensure, palette, snap_rect};
+pub use style::{apply, apply_with, dot, dots, ensure, font_id_scaled, palette, snap_rect};
 pub use widgets::{
     Column, ColumnWidth, Dialog, DialogResponse, DotIcon, FKey, HeaderBar, ListResponse, ListRow,
     ListState, ListView, MessageBoxResult, SegmentBar, TabStyle, TitledPanel, fkey_bar, header_bar,

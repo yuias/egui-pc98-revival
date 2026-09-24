@@ -394,6 +394,15 @@ impl eframe::App for DemoApp {
                                     &mut self.position,
                                     &[0.25, 0.5, 0.75],
                                 );
+                                // Same readout at 2x, to show font_id_scaled.
+                                ui.label(
+                                    egui::RichText::new(format!(
+                                        "{:02}:{:02}",
+                                        (elapsed / 60.0) as u32,
+                                        (elapsed % 60.0) as u32
+                                    ))
+                                    .font(egui_pc98_revival::font_id_scaled(ui.ctx(), 2)),
+                                );
 
                                 ui.label("Hue fills (0..15):");
                                 ui.horizontal(|ui| {
